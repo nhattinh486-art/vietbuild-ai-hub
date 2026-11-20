@@ -906,19 +906,27 @@ function calculateEstimation(recordToDashboard = true) {
   const totalManDays = Math.round(totalBuiltArea * (projType === 'bietthu' ? 3.0 : 2.5));
   const totalMachineShifts = +(totalConcreteM3 * 0.18 + volExcavation * 0.06 + floors * 4.5 + (basement !== 'none' ? 12 : 0)).toFixed(1);
 
+  const ap = (typeof getAdminOverrides === 'function' ? getAdminOverrides().prices : null) || {};
+  const pConcrete = ap.concrete || 1450000;
+  const pSteel = ap.steel || 18200000;
+  const pAac = ap.aac || 285000;
+  const pBrick = ap.brick || 235000;
+  const pLabor = ap.labor || 480000;
+  const pMachine = ap.machine || 2150000;
+
   const boqItems = [
     { code: 'AB.11', name: `Vật liệu & Công tác Đất móng, Bê tông lót đá 4×6 M100 (${volLeanConcrete} m³)`, unit: 'm³', qty: volExcavation, unitPrice: Math.round(240000 * regionCoeff) },
-    { code: 'AF.11', name: `Bê tông thương phẩm Móng, Cột, Dầm, Sàn cấp bền ${concreteGrade} (Móng ${volFoundConcrete} m³ + Thân ${volBodyConcrete} m³)`, unit: 'm³', qty: totalConcreteM3, unitPrice: Math.round(1450000 * regionCoeff * gradeCoeff) },
+    { code: 'AF.11', name: `Bê tông thương phẩm Móng, Cột, Dầm, Sàn cấp bền ${concreteGrade} (Móng ${volFoundConcrete} m³ + Thân ${volBodyConcrete} m³)`, unit: 'm³', qty: totalConcreteM3, unitPrice: Math.round(pConcrete * regionCoeff * gradeCoeff) },
     { code: 'AF.61', name: 'Vật tư Cốp pha ván khuôn phủ phim & hệ giáo chống thi công kết cấu BTCT', unit: 'm²', qty: areaFormwork, unitPrice: Math.round(195000 * regionCoeff) },
-    { code: 'AF.81', name: `Vật tư Cốt thép toàn khối (Thép chủ ${mainSteelTon}T + Đai/sàn ${stirrupSteelTon}T, gồm 3% hao hụt)`, unit: 'Tấn', qty: totalSteelTon, unitPrice: Math.round(18200000 * regionCoeff) },
-    { code: 'AE.22', name: ecoMode ? `Vật tư Xây tường gạch nhẹ chưng áp AAC (${bricksCount.toLocaleString('vi-VN')} viên) + Keo xây` : `Vật tư Xây tường gạch ống Tuynel (${bricksCount.toLocaleString('vi-VN')} viên) + Vữa M75`, unit: 'm²', qty: areaWallM2, unitPrice: Math.round((ecoMode ? 285000 : 235000) * regionCoeff) },
+    { code: 'AF.81', name: `Vật tư Cốt thép toàn khối (Thép chủ ${mainSteelTon}T + Đai/sàn ${stirrupSteelTon}T, gồm 3% hao hụt)`, unit: 'Tấn', qty: totalSteelTon, unitPrice: Math.round(pSteel * regionCoeff) },
+    { code: 'AE.22', name: ecoMode ? `Vật tư Xây tường gạch nhẹ chưng áp AAC (${bricksCount.toLocaleString('vi-VN')} viên) + Keo xây` : `Vật tư Xây tường gạch ống Tuynel (${bricksCount.toLocaleString('vi-VN')} viên) + Vữa M75`, unit: 'm²', qty: areaWallM2, unitPrice: Math.round((ecoMode ? pAac : pBrick) * regionCoeff) },
     { code: 'AK.21', name: `Vật tư Trát tường trong/ngoài & láng nền (Xi măng ${cementTon}T, Cát ${sandM3} m³, Đá ${stoneM3} m³)`, unit: 'm²', qty: areaPlasterM2, unitPrice: Math.round(105000 * regionCoeff) },
     { code: 'AK.51', name: 'Vật tư Ốp lát gạch Ceramic / Granite nền nhà, cầu thang & khu vệ sinh', unit: 'm²', qty: areaTilingM2, unitPrice: Math.round(420000 * regionCoeff * finishMult) },
     { code: 'AK.74', name: 'Vật tư Chống thấm sàn mái, ban công & sàn khu vệ sinh (Sika 2 thành phần)', unit: 'm²', qty: areaWaterproofM2, unitPrice: Math.round(185000 * regionCoeff) },
     { code: 'AK.82', name: ecoMode ? 'Vật tư Bả matit, sơn lót kháng kiềm & sơn phủ sinh thái ít VOC (2 lớp)' : 'Vật tư Bả matit & sơn nước nội/ngoại thất hoàn thiện (2 lớp)', unit: 'm²', qty: areaPaintM2, unitPrice: Math.round((ecoMode ? 92000 : 75000) * regionCoeff * finishMult) },
     { code: 'MEP-01', name: ecoMode ? 'Thiết bị Điện, Cấp thoát nước, Cửa nhôm kính Low-E cản nhiệt' : 'Thiết bị Điện, Cấp thoát nước & Cửa nhôm kính hoàn thiện', unit: 'm² sàn', qty: totalBuiltArea, unitPrice: Math.round((ecoMode ? 1280000 : 1050000) * regionCoeff * finishMult * typeCoeff) },
-    { code: 'NC-01', name: `Chi phí Nhân công thi công trực tiếp (Thợ chính bậc 3,5/7 & phụ hồ toàn công trình)`, unit: 'Công', qty: totalManDays, unitPrice: Math.round(480000 * regionCoeff) },
-    { code: 'MTC-01', name: 'Chi phí Máy móc & Thiết bị thi công (Xe bơm cần bê tông, máy xúc, đầm dùi, cắt/uốn thép, tời/vận thăng)', unit: 'Ca máy', qty: totalMachineShifts, unitPrice: Math.round(2150000 * regionCoeff) }
+    { code: 'NC-01', name: `Chi phí Nhân công thi công trực tiếp (Thợ chính bậc 3,5/7 & phụ hồ toàn công trình)`, unit: 'Công', qty: totalManDays, unitPrice: Math.round(pLabor * regionCoeff) },
+    { code: 'MTC-01', name: 'Chi phí Máy móc & Thiết bị thi công (Xe bơm cần bê tông, máy xúc, đầm dùi, cắt/uốn thép, tời/vận thăng)', unit: 'Ca máy', qty: totalMachineShifts, unitPrice: Math.round(pMachine * regionCoeff) }
   ];
 
   const rawMaterialCost = boqItems.slice(0, 6).reduce((acc, it) => acc + Math.round(it.qty * it.unitPrice), 0);
@@ -3278,6 +3286,7 @@ async function generateAndDownloadPDF() {
       .from(pdfWrapper)
       .save();
 
+    recordAdminUsage('pdf', `Xuất Hồ sơ Kỹ thuật PDF: ${safeFileName}.pdf`);
     if (statusEl) {
       statusEl.textContent = `✅ Đã xuất và tải xuống thành công file "${safeFileName}.pdf"!`;
       statusEl.className = 'text-xs font-bold p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300';
@@ -3296,6 +3305,111 @@ async function generateAndDownloadPDF() {
 }
 
 // ============================================================================
+// 10. KẾT NỐI ĐỒNG BỘ VỚI ỨNG DỤNG DTU ADMIN APP (LOCAL + FIREBASE CLOUD)
+// ============================================================================
+
+const DEFAULT_FIREBASE_URL = 'https://admin1-404b9-default-rtdb.asia-southeast1.firebasedatabase.app';
+
+function getMainFirebaseUrl() {
+  const saved = localStorage.getItem('dtu_firebase_rtdb_url');
+  if (saved === '__OFF__') return '';
+  return ((saved || DEFAULT_FIREBASE_URL) || '').trim().replace(/\/+$/, '');
+}
+
+function getAdminOverrides() {
+  try {
+    const raw = localStorage.getItem('dtu_admin_config_v1');
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+function recordAdminUsage(category, actionLabel) {
+  try {
+    const key = 'dtu_usage_stats_v1';
+    const raw = localStorage.getItem(key);
+    const stats = raw ? JSON.parse(raw) : { estimator: 0, tcvn: 0, siteguard: 0, crackdoctor: 0, pdf: 0, logs: [] };
+    if (typeof stats[category] === 'number') stats[category] += 1;
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} ${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}`;
+    stats.logs = [{ action: actionLabel, time: timeStr }, ...(Array.isArray(stats.logs) ? stats.logs : [])].slice(0, 30);
+    localStorage.setItem(key, JSON.stringify(stats));
+
+    const fbUrl = getMainFirebaseUrl();
+    if (fbUrl) {
+      fetch(`${fbUrl}/dtu_usage_stats.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(stats)
+      }).catch(() => {});
+    }
+  } catch {
+    // ignore storage quota errors
+  }
+}
+
+function applyAdminConfigToApp(cfg) {
+  if (!cfg || typeof cfg !== 'object') return;
+
+  // 1. Áp dụng thanh thông báo toàn hệ thống
+  const noticeEl = document.getElementById('admin-global-notice');
+  if (noticeEl) {
+    if (cfg.notice && cfg.notice.enabled && cfg.notice.text) {
+      const styleMap = {
+        info: 'background:#eff6ff; border-color:#bfdbfe; color:#1e40af;',
+        success: 'background:#ecfdf5; border-color:#a7f3d0; color:#065f46;',
+        warning: 'background:#fffbeb; border-color:#fde68a; color:#92400e;'
+      };
+      noticeEl.style.cssText = styleMap[cfg.notice.type] || styleMap.info;
+      noticeEl.textContent = `Thông báo từ Quản trị viên DTU: ${cfg.notice.text}`;
+      noticeEl.classList.remove('hidden');
+    } else {
+      noticeEl.classList.add('hidden');
+    }
+  }
+
+  // 2. Cập nhật đơn giá vật tư sửa chữa (Mục 4)
+  if (cfg.prices && typeof STANDARD_REPAIR_CATALOG !== 'undefined') {
+    if (cfg.prices.epoxy) STANDARD_REPAIR_CATALOG.sikadur_752.unitPrice = cfg.prices.epoxy;
+    if (cfg.prices.cfrp) STANDARD_REPAIR_CATALOG.cfrp_wrap.unitPrice = cfg.prices.cfrp;
+    if (cfg.prices.sikatop) STANDARD_REPAIR_CATALOG.sikatop_107.unitPrice = cfg.prices.sikatop;
+  }
+
+  // 3. Nạp các điều khoản TCVN bổ sung từ Admin
+  if (Array.isArray(cfg.customTcvn) && typeof TCVN_KNOWLEDGE !== 'undefined') {
+    cfg.customTcvn.forEach(item => {
+      if (item && item.code && !TCVN_KNOWLEDGE.some(k => k.code === item.code && k.title === item.title)) {
+        TCVN_KNOWLEDGE.unshift(item);
+      }
+    });
+  }
+}
+
+async function initAdminBridgeSync() {
+  applyAdminConfigToApp(getAdminOverrides());
+  const fbUrl = getMainFirebaseUrl();
+  if (!fbUrl) return;
+  try {
+    const res = await fetch(`${fbUrl}/dtu_admin_config.json?t=${Date.now()}`);
+    if (res.ok) {
+      const remote = await res.json();
+      if (remote && typeof remote === 'object') {
+        localStorage.setItem('dtu_admin_config_v1', JSON.stringify(remote));
+        applyAdminConfigToApp(remote);
+        calculateEstimation(false);
+      }
+    }
+  } catch {
+    // offline fallback silently
+  }
+}
+
+window.addEventListener('focus', () => {
+  initAdminBridgeSync();
+});
+
+// ============================================================================
 // INITIALIZE ON DOM READY
 // ============================================================================
 
@@ -3311,6 +3425,7 @@ window.addEventListener('DOMContentLoaded', () => {
     connectAndVerifyGeminiKey(AppState.apiKey);
   }
 
+  initAdminBridgeSync();
   updateDashboardOverview();
   calculateEstimation(false);
   checkStructureTCVN(false);

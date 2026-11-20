@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>DTU Admin • Quản trị Hệ thống Xây Dựng Số AI</title>
+
+  <!-- PWA & iOS Home Screen App Meta -->
+  <link rel="manifest" href="manifest-admin.json" />
+  <link rel="icon" type="image/jpeg" href="logo-khoa-xay-dung-dtu.jpg" />
+  <link rel="apple-touch-icon" href="logo-khoa-xay-dung-dtu.jpg" />
+  <meta name="theme-color" content="#65121b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="DTU Admin" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg-canvas: #f5f6f8;
+      --dtu-crimson: #8b1e2b;
+      --dtu-crimson-dark: #65121b;
+    }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-canvas);
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    .safe-top {
+      padding-top: max(12px, env(safe-area-inset-top));
+    }
+    .safe-bottom {
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+    }
+    .admin-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .btn-dtu {
+      background: #8b1e2b;
+      color: #ffffff;
+    }
+    .btn-dtu:hover {
+      background: #6f1621;
+    }
+    .nav-item-active {
+      color: #8b1e2b !important;
+      background: #fdf2f4 !important;
+      font-weight: 700 !important;
+    }
+    .bottom-nav-active {
+      color: #8b1e2b !important;
+    }
+    .bottom-nav-active .bnav-pill {
+      background: #fdf2f4;
+    }
+    /* Chống phóng to màn hình khi gõ trên iOS Safari */
+    @media (max-width: 768px) {
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ====================================================================== -->
+  <!-- MÀN HÌNH ĐĂNG NHẬP ADMIN (BẢO MẬT ỨNG DỤNG) -->
+  <!-- ====================================================================== -->
+  <div id="admin-login-screen" class="fixed inset-0 z-50 bg-[#f5f6f8] flex items-center justify-center p-5">
+    <div class="w-full max-w-sm bg-white border border-slate-200 rounded-3xl p-6 shadow-xl space-y-5">
+      <div class="flex flex-col items-center text-center space-y-2.5">
+        <div class="w-16 h-16 rounded-2xl bg-white p-1 border border-slate-200 shadow-sm overflow-hidden">
+          <img src="logo-khoa-xay-dung-dtu.jpg" alt="Logo Khoa Xây Dựng DTU" class="w-full h-full object-contain" />
+        </div>
+        <div>
+          <div class="text-[11px] font-bold uppercase tracking-wider text-[#8b1e2b]">Đại Học Duy Tân • Khoa Xây Dựng</div>
+          <h1 class="text-xl font-extrabold text-slate-900 mt-0.5">DTU Xây Dựng Admin</h1>
+          <p class="text-xs text-slate-500 mt-1">Ứng dụng quản trị đơn giá, thông báo, kho TCVN &amp; thống kê thời gian thực.</p>
+        </div>
+      </div>
+
+      <form onsubmit="handleAdminLogin(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1.5">Mật khẩu Quản trị viên</label>
+          <input
+            id="admin-login-pass"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Nhập mật khẩu Admin..."
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-[#8b1e2b]"
+          />
+          <div class="text-[11px] text-slate-400 mt-1.5">Mật khẩu mặc định lần đầu: <span class="font-mono-tech font-bold text-slate-600">dtu2026</span> (có thể đổi trong Cài đặt).</div>
+        </div>
+
+        <div id="admin-login-error" class="hidden p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 font-medium"></div>
+
+        <button type="submit" class="w-full py-3 rounded-xl btn-dtu font-bold text-sm shadow-sm transition active:scale-[0.99]">
+          Đăng nhập Quản trị
+        </button>
+      </form>
+
+      <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+        <a href="index.html" class="text-slate-500 hover:text-[#8b1e2b] font-medium inline-flex items-center gap-1">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+          <span>Về trang web chính</span>
+        </a>
+        <button type="button" onclick="showInstallGuideModal()" class="text-[#8b1e2b] font-semibold inline-flex items-center gap-1">
+          <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+          <span>Cài lên điện thoại</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================================================================== -->
+  <!-- GIAO DIỆN CHÍNH ỨNG DỤNG ADMIN (MOBILE-FIRST + DESKTOP SIDEBAR) -->
+  <!-- ====================================================================== -->
+  <div id="admin-app-shell" class="hidden flex-1 flex flex-col lg:flex-row min-h-screen">
+
+    <!-- SIDEBAR TRÊN MÁY TÍNH -->
+    <aside class="hidden lg:flex lg:w-64 bg-white border-r border-slate-200 flex-col justify-between shrink-0 sticky top-0 h-screen">
+      <div>
+        <div class="p-5 border-b border-slate-100 flex items-center gap-3">
+          <div class="w-11 h-11 rounded-xl bg-white p-0.5 border border-slate-200 shadow-sm shrink-0 overflow-hidden">
+            <img src="logo-khoa-xay-dung-dtu.jpg" alt="DTU" class="w-full h-full object-contain" />
+          </div>
+          <div class="min-w-0">
+            <div class="font-extrabold text-sm text-slate-900 truncate">DTU ADMIN APP</div>
+            <div class="text-[11px] font-semibold text-[#8b1e2b] truncate">Khoa Xây Dựng • DTU</div>
+          </div>
+        </div>
+
+        <nav class="p-3 space-y-1">
+          <button onclick="switchAdminTab('overview')" data-atab="overview" class="admin-nav-btn nav-item-active w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition text-left">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i><span>Tổng quan &amp; Thống kê</span>
+          </button>
+          <button onclick="switchAdminTab('prices')" data-atab="prices" class="admin-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition text-left">
+            <i data-lucide="badge-dollar-sign" class="w-4 h-4"></i><span>Quản lý Đơn giá BOQ</span>
+          </button>
+          <button onclick="switchAdminTab('notice')" data-atab="notice" class="admin-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition text-left">
+            <i data-lucide="megaphone" class="w-4 h-4"></i><span>Thông báo Hệ thống</span>
+          </button>
+          <button onclick="switchAdminTab('tcvn')" data-atab="tcvn" class="admin-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition text-left">
+            <i data-lucide="book-open-check" class="w-4 h-4"></i><span>Kho Tiêu chuẩn TCVN</span>
+          </button>
+          <button onclick="switchAdminTab('settings')" data-atab="settings" class="admin-nav-btn w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition text-left">
+            <i data-lucide="cloud-cog" class="w-4 h-4"></i><span>Cloud Sync &amp; Cài đặt</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="p-4 border-t border-slate-100 space-y-2">
+        <a href="index.html" target="_blank" class="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700 flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="external-link" class="w-3.5 h-3.5"></i><span>Mở Web Chính</span>
+        </a>
+        <button onclick="logoutAdmin()" class="w-full py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-700 flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="log-out" class="w-3.5 h-3.5"></i><span>Đăng xuất</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <div class="flex-1 flex flex-col min-w-0 pb-24 lg:pb-8">
+      <!-- TOP APP BAR -->
+      <header class="sticky top-0 z-30 bg-[#65121b] text-white px-4 sm:px-6 pb-3.5 safe-top shadow-sm">
+        <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-white p-0.5 shrink-0 overflow-hidden lg:hidden">
+              <img src="logo-khoa-xay-dung-dtu.jpg" alt="DTU" class="w-full h-full object-contain" />
+            </div>
+            <div class="min-w-0">
+              <div class="text-sm sm:text-base font-extrabold tracking-tight truncate">DTU Xây Dựng Admin</div>
+              <div id="admin-sync-badge" class="text-[11px] text-rose-100 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-300 inline-block"></span>
+                <span>Chế độ Cục bộ (Local)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="openPendingUpdatesTab()" title="Thông báo đơn giá &amp; TCVN mới" class="relative p-2 rounded-lg bg-white/15 hover:bg-white/25 text-white transition">
+              <i data-lucide="bell" class="w-4 h-4"></i>
+              <span id="admin-bell-badge" class="hidden absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold flex items-center justify-center">0</span>
+            </button>
+            <button id="btn-install-pwa" onclick="triggerInstallPWA()" class="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-xs font-semibold text-white inline-flex items-center gap-1.5 transition">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i>
+              <span class="hidden sm:inline">Cài App</span>
+              <span class="sm:hidden">Cài</span>
+            </button>
+            <button onclick="syncFromCloudNow()" title="Làm mới dữ liệu" class="p-2 rounded-lg bg-white/15 hover:bg-white/25 text-white transition">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+            <button onclick="logoutAdmin()" title="Đăng xuất" class="lg:hidden p-2 rounded-lg bg-white/15 hover:bg-white/25 text-white transition">
+              <i data-lucide="log-out" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- TOAST THÔNG BÁO NHANH -->
+      <div id="admin-toast" class="hidden fixed top-16 right-4 left-4 sm:left-auto sm:w-80 z-50 p-3.5 rounded-2xl bg-slate-900 text-white text-xs font-semibold shadow-xl flex items-center gap-2"></div>
+
+      <!-- KHUNG CÁC TAB -->
+      <main class="max-w-5xl w-full mx-auto p-4 sm:p-6 space-y-5">
+
+        <!-- ================================================================ -->
+        <!-- TAB 1: TỔNG QUAN & THỐNG KÊ HOẠT ĐỘNG -->
+        <!-- ================================================================ -->
+        <section id="atab-overview" class="admin-panel space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Tổng quan Hệ thống</h2>
+              <p class="text-xs text-slate-500">Theo dõi lượt sử dụng thực tế các phân hệ trên web chính.</p>
+            </div>
+            <a href="index.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-700 hover:border-[#8b1e2b] inline-flex items-center gap-1.5">
+              <i data-lucide="globe" class="w-3.5 h-3.5 text-[#8b1e2b]"></i><span>Xem Web Chính</span>
+            </a>
+          </div>
+
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="admin-card p-4">
+              <div class="text-[11px] font-semibold text-slate-500 uppercase">Lượt Dự toán BOQ</div>
+              <div id="stat-estimator" class="font-mono-tech text-2xl font-extrabold text-[#8b1e2b] mt-1">0</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Phân hệ 1</div>
+            </div>
+            <div class="admin-card p-4">
+              <div class="text-[11px] font-semibold text-slate-500 uppercase">Lượt Tra cứu TCVN</div>
+              <div id="stat-tcvn" class="font-mono-tech text-2xl font-extrabold text-sky-700 mt-1">0</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Phân hệ 2</div>
+            </div>
+            <div class="admin-card p-4">
+              <div class="text-[11px] font-semibold text-slate-500 uppercase">Ảnh HSE &amp; Vết nứt</div>
+              <div id="stat-vision" class="font-mono-tech text-2xl font-extrabold text-emerald-700 mt-1">0</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Phân hệ 3 &amp; 4</div>
+            </div>
+            <div class="admin-card p-4">
+              <div class="text-[11px] font-semibold text-slate-500 uppercase">Hồ sơ PDF đã xuất</div>
+              <div id="stat-pdf" class="font-mono-tech text-2xl font-extrabold text-amber-700 mt-1">0</div>
+              <div class="text-[11px] text-slate-400 mt-0.5">Báo cáo A4</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="lg:col-span-7 admin-card p-4 sm:p-5">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-sm text-slate-900">Biểu đồ Phân bổ Lượt sử dụng</h3>
+                <button onclick="resetAnalyticsStats()" class="text-[11px] font-semibold text-rose-600 hover:underline">Đặt lại số liệu</button>
+              </div>
+              <div class="h-56">
+                <canvas id="admin-stats-chart"></canvas>
+              </div>
+            </div>
+
+            <div class="lg:col-span-5 admin-card p-4 sm:p-5 flex flex-col">
+              <h3 class="font-bold text-sm text-slate-900 mb-3">Nhật ký Hoạt động gần đây</h3>
+              <div id="admin-activity-log" class="space-y-2 text-xs text-slate-600 flex-1 max-h-56 overflow-y-auto">
+                <div class="p-3 rounded-xl bg-slate-50 text-slate-400 text-center">Chưa có hoạt động nào được ghi nhận.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- TAB 2: QUẢN LÝ ĐƠN GIÁ VẬT LIỆU, NHÂN CÔNG & SỬA CHỮA -->
+        <!-- ================================================================ -->
+        <section id="atab-prices" class="admin-panel hidden space-y-5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">Quản lý Đơn giá &amp; Định mức</h2>
+              <p class="text-xs text-slate-500">Chỉnh đơn giá tại đây sẽ tự động cập nhật bảng BOQ &amp; Dự toán sửa chữa trên web chính.</p>
+            </div>
+            <button onclick="resetDefaultPrices()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-xs font-semibold text-slate-700">
+              Khôi phục giá chuẩn
+            </button>
+          </div>
+
+          <!-- TRUNG TÂM THÔNG BÁO & CẬP NHẬT TỰ ĐỘNG ĐƠN GIÁ MỚI -->
+          <div class="admin-card p-4 sm:p-5 space-y-3.5 border-l-4 border-l-[#8b1e2b]">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="bell-ring" class="w-4 h-4 text-[#8b1e2b]"></i>
+                  <span>Theo dõi &amp; Thông báo Đơn giá Xây dựng mới</span>
+                </h3>
+                <p id="price-last-check" class="text-[11px] text-slate-500 mt-0.5">Kiểm tra mặt bằng giá vật liệu, nhân công &amp; máy thi công mới nhất.</p>
+              </div>
+              <button onclick="checkPriceUpdates(false)" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold inline-flex items-center gap-1.5 transition">
+                <i data-lucide="search-check" class="w-3.5 h-3.5"></i>
+                <span>Kiểm tra đơn giá mới</span>
+              </button>
+            </div>
+
+            <label class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <div class="pr-3">
+                <div class="text-xs font-bold text-slate-800">Tự động cập nhật lên Web khi có Đơn giá mới</div>
+                <div class="text-[11px] text-slate-500">Mặc định TẮT. Chỉ khi bạn BẬT công tắc này, hệ thống mới tự động áp dụng đơn giá mới mà không cần duyệt thủ công.</div>
+              </div>
+              <input id="cfg-auto-price" type="checkbox" onchange="toggleAutoUpdate('price')" class="w-5 h-5 accent-[#8b1e2b] shrink-0" />
+            </label>
+
+            <div id="price-update-alert" class="hidden"></div>
+          </div>
+
+          <div class="admin-card p-4 sm:p-5 space-y-4">
+            <h3 class="font-bold text-sm text-[#8b1e2b] border-b border-slate-100 pb-2">1. Đơn giá Xây dựng Cơ bản (Mục 1 — BOQ)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Bê tông thương phẩm (đ/m³)</label>
+                <input id="cfg-price-concrete" type="number" step="10000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Cốt thép xây dựng (đ/Tấn)</label>
+                <input id="cfg-price-steel" type="number" step="100000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Nhân công trực tiếp NC-01 (đ/công)</label>
+                <input id="cfg-price-labor" type="number" step="10000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Máy thi công MTC-01 (đ/ca máy)</label>
+                <input id="cfg-price-machine" type="number" step="50000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Gạch nhẹ AAC xanh (đ/m² tường)</label>
+                <input id="cfg-price-aac" type="number" step="5000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Gạch ống tuynel thường (đ/m² tường)</label>
+                <input id="cfg-price-brick" type="number" step="5000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+            </div>
+          </div>
+
+          <div class="admin-card p-4 sm:p-5 space-y-4">
+            <h3 class="font-bold text-sm text-[#8b1e2b] border-b border-slate-100 pb-2">2. Đơn giá Vật tư Sửa chữa Kết cấu (Mục 4 — Bác sĩ Công trình)</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Keo Epoxy bơm nứt Sikadur-752 (đ/kg)</label>
+                <input id="cfg-price-epoxy" type="number" step="10000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Tấm sợi Carbon CFRP SikaWrap (đ/m²)</label>
+                <input id="cfg-price-cfrp" type="number" step="50000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Chống thấm SikaTop Seal-107 (đ/m²)</label>
+                <input id="cfg-price-sikatop" type="number" step="5000" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+              </div>
+            </div>
+          </div>
+
+          <button onclick="saveAdminPrices()" class="w-full sm:w-auto px-6 py-3 rounded-xl btn-dtu font-bold text-sm shadow-sm inline-flex items-center justify-center gap-2 transition">
+            <i data-lucide="save" class="w-4 h-4"></i><span>Lưu &amp; Áp dụng Đơn giá lên Web Chính</span>
+          </button>
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- TAB 3: THÔNG BÁO TOÀN HỆ THỐNG -->
+        <!-- ================================================================ -->
+        <section id="atab-notice" class="admin-panel hidden space-y-5">
+          <div>
+            <h2 class="text-lg font-extrabold text-slate-900">Thông báo &amp; Banner trên Web Chính</h2>
+            <p class="text-xs text-slate-500">Hiển thị thanh thông báo nổi bật ngay đầu trang web chính cho sinh viên &amp; giảng viên.</p>
+          </div>
+
+          <!-- TRUNG TÂM DUYỆT THÔNG BÁO TỰ SOẠN KHI CẬP NHẬT ĐƠN GIÁ / TCVN -->
+          <div class="admin-card p-4 sm:p-5 space-y-3.5 border-l-4 border-l-amber-600">
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                <i data-lucide="file-check-2" class="w-4 h-4 text-amber-600"></i>
+                <span>Thông báo Chờ duyệt (Tự soạn khi cập nhật Đơn giá / TCVN)</span>
+              </h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">Mỗi khi bạn duyệt Đơn giá mới hoặc TCVN mới, hệ thống sẽ tự tóm tắt sẵn nội dung đã cập nhật vào đây để bạn duyệt đăng lên web chính.</p>
+            </div>
+
+            <label class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <div class="pr-3">
+                <div class="text-xs font-bold text-slate-800">Tự động duyệt &amp; đăng Thông báo lên Web</div>
+                <div class="text-[11px] text-slate-500">Mặc định TẮT. Chỉ khi bạn BẬT công tắc này, hệ thống mới tự động đăng thông báo ngay sau khi cập nhật Đơn giá hoặc TCVN.</div>
+              </div>
+              <input id="cfg-auto-notice" type="checkbox" onchange="toggleAutoUpdate('notice')" class="w-5 h-5 accent-[#8b1e2b] shrink-0" />
+            </label>
+
+            <div id="pending-notice-box" class="hidden"></div>
+          </div>
+
+          <div class="admin-card p-4 sm:p-5 space-y-4">
+            <label class="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <div>
+                <div class="text-sm font-bold text-slate-900">Bật thanh thông báo trên trang chính</div>
+                <div class="text-xs text-slate-500">Khi bật, thông báo sẽ hiện ngay phía trên banner Đại Học Duy Tân.</div>
+              </div>
+              <input id="cfg-notice-enabled" type="checkbox" class="w-5 h-5 accent-[#8b1e2b]" />
+            </label>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Mức độ / Màu sắc thông báo</label>
+              <select id="cfg-notice-type" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm">
+                <option value="info">Thông tin chung (Xanh dương dịu)</option>
+                <option value="success">Tin mới / Cập nhật (Xanh lá)</option>
+                <option value="warning">Lưu ý quan trọng / Bảo trì (Vàng cam)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Nội dung thông báo</label>
+              <textarea id="cfg-notice-text" rows="3" placeholder="VD: Khoa Xây Dựng DTU đã cập nhật bảng đơn giá vật liệu Quý IV và bộ công cụ TCVN 2737:2023 mới nhất!" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></textarea>
+            </div>
+
+            <button onclick="saveAdminNotice()" class="w-full sm:w-auto px-6 py-3 rounded-xl btn-dtu font-bold text-sm shadow-sm inline-flex items-center justify-center gap-2 transition">
+              <i data-lucide="send" class="w-4 h-4"></i><span>Cập nhật Thông báo ngay</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- TAB 4: QUẢN LÝ KHO TIÊU CHUẨN TCVN / QCVN -->
+        <!-- ================================================================ -->
+        <section id="atab-tcvn" class="admin-panel hidden space-y-5">
+          <div>
+            <h2 class="text-lg font-extrabold text-slate-900">Kho Tiêu chuẩn TCVN / QCVN Bổ sung</h2>
+            <p class="text-xs text-slate-500">Thêm điều khoản tiêu chuẩn mới — Trợ lý tra cứu ở Mục 2 sẽ tự động tìm thấy ngay.</p>
+          </div>
+
+          <!-- TRUNG TÂM THÔNG BÁO & CẬP NHẬT TỰ ĐỘNG TCVN / QCVN MỚI -->
+          <div class="admin-card p-4 sm:p-5 space-y-3.5 border-l-4 border-l-sky-700">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 class="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                  <i data-lucide="bell-ring" class="w-4 h-4 text-sky-700"></i>
+                  <span>Theo dõi &amp; Thông báo Tiêu chuẩn TCVN / QCVN mới</span>
+                </h3>
+                <p id="tcvn-last-check" class="text-[11px] text-slate-500 mt-0.5">Phát hiện các tiêu chuẩn mới ban hành hoặc sửa đổi để cập nhật kịp thời lên web.</p>
+              </div>
+              <button onclick="checkTcvnUpdates(false)" class="px-3.5 py-2 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold inline-flex items-center gap-1.5 transition">
+                <i data-lucide="search-check" class="w-3.5 h-3.5"></i>
+                <span>Kiểm tra TCVN mới</span>
+              </button>
+            </div>
+
+            <label class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer">
+              <div class="pr-3">
+                <div class="text-xs font-bold text-slate-800">Tự động cập nhật lên Web khi có TCVN / QCVN mới</div>
+                <div class="text-[11px] text-slate-500">Mặc định TẮT. Chỉ khi bạn BẬT công tắc này, hệ thống mới tự động nạp tiêu chuẩn mới vào kho tra cứu trên web chính.</div>
+              </div>
+              <input id="cfg-auto-tcvn" type="checkbox" onchange="toggleAutoUpdate('tcvn')" class="w-5 h-5 accent-[#8b1e2b] shrink-0" />
+            </label>
+
+            <div id="tcvn-update-alert" class="hidden"></div>
+          </div>
+
+          <div class="admin-card p-4 sm:p-5 space-y-3.5">
+            <h3 class="font-bold text-sm text-[#8b1e2b]">Thêm điều khoản tiêu chuẩn mới</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Mã tiêu chuẩn *</label>
+                <input id="new-tcvn-code" type="text" placeholder="VD: TCVN 10304:2014" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Điều khoản / Mục</label>
+                <input id="new-tcvn-clause" type="text" placeholder="VD: Mục 7.1 — Thiết kế móng cọc" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Tiêu đề nội dung *</label>
+              <input id="new-tcvn-title" type="text" placeholder="VD: Khoảng cách tối thiểu giữa các cọc trong đài móng" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Từ khóa tra cứu (cách nhau bằng dấu phẩy)</label>
+              <input id="new-tcvn-keywords" type="text" placeholder="VD: cọc, móng cọc, khoảng cách cọc, 3d" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Tóm tắt quy định kỹ thuật *</label>
+              <textarea id="new-tcvn-summary" rows="3" placeholder="VD: Khoảng cách tim đến tim giữa các cọc ma sát không nhỏ hơn 3d (với d là cạnh/đường kính cọc)..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm"></textarea>
+            </div>
+            <button onclick="addCustomTcvn()" class="w-full sm:w-auto px-5 py-2.5 rounded-xl btn-dtu font-bold text-xs inline-flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i><span>Thêm vào Kho TCVN</span>
+            </button>
+          </div>
+
+          <div class="admin-card p-4 sm:p-5 space-y-3">
+            <h3 class="font-bold text-sm text-slate-900">Danh sách điều khoản Admin đã thêm</h3>
+            <div id="admin-tcvn-list" class="space-y-2.5"></div>
+          </div>
+        </section>
+
+        <!-- ================================================================ -->
+        <!-- TAB 5: ĐỒNG BỘ CLOUD (FIREBASE) & CÀI ĐẶT BẢO MẬT -->
+        <!-- ================================================================ -->
+        <section id="atab-settings" class="admin-panel hidden space-y-5">
+          <div>
+            <h2 class="text-lg font-extrabold text-slate-900">Đồng bộ Cloud &amp; Cài đặt Ứng dụng</h2>
+            <p class="text-xs text-slate-500">Kết nối Firebase Realtime Database miễn phí để chỉnh trên điện thoại là mọi máy đều tự cập nhật.</p>
+          </div>
+
+          <!-- Kết nối Firebase Realtime DB -->
+          <div class="admin-card p-4 sm:p-5 space-y-3.5">
+            <div class="flex items-center justify-between">
+              <h3 class="font-bold text-sm text-[#8b1e2b]">1. Đồng bộ đa thiết bị (Firebase Realtime Database)</h3>
+              <span id="cloud-status-pill" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Chưa gắn Cloud</span>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Đường dẫn Firebase Realtime Database URL</label>
+              <input id="cfg-firebase-url" type="url" placeholder="https://ten-du-an-cua-ban-default-rtdb.asia-southeast1.firebasedatabase.app" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-mono-tech" />
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+              <button onclick="saveCloudConfig()" class="px-4 py-2.5 rounded-xl btn-dtu font-bold text-xs inline-flex items-center gap-1.5">
+                <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i><span>Lưu &amp; Đồng bộ Cloud ngay</span>
+              </button>
+              <button onclick="disconnectCloud()" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs">
+                Ngắt kết nối Cloud
+              </button>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1 leading-relaxed">
+              <div class="font-bold text-slate-800">Hướng dẫn lấy link Firebase miễn phí trong 2 phút:</div>
+              <div>1. Vào <strong>console.firebase.google.com</strong> → Tạo dự án mới (Miễn phí).</div>
+              <div>2. Chọn <strong>Build → Realtime Database → Create Database</strong> (chọn khu vực Singapore, chế độ <em>Test mode</em>).</div>
+              <div>3. Copy đường dẫn URL màu xanh phía trên bảng dữ liệu rồi dán vào ô trên và bấm <strong>Lưu &amp; Đồng bộ</strong>.</div>
+            </div>
+          </div>
+
+          <!-- Đổi mật khẩu Admin -->
+          <div class="admin-card p-4 sm:p-5 space-y-3.5">
+            <h3 class="font-bold text-sm text-slate-900">2. Đổi mật khẩu Đăng nhập Admin</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu mới</label>
+                <input id="cfg-new-pass" type="password" placeholder="Ít nhất 4 ký tự..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Nhập lại mật khẩu mới</label>
+                <input id="cfg-new-pass-confirm" type="password" placeholder="Nhập lại mật khẩu..." class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm" />
+              </div>
+            </div>
+            <button onclick="changeAdminPassword()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs">
+              Cập nhật Mật khẩu
+            </button>
+          </div>
+
+          <!-- Hướng dẫn cài đặt lên điện thoại -->
+          <div class="admin-card p-4 sm:p-5 space-y-2.5">
+            <h3 class="font-bold text-sm text-slate-900">3. Cài ứng dụng Admin này lên Màn hình chính điện thoại</h3>
+            <div class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
+              <div><strong>• Trên iPhone (Safari):</strong> Bấm biểu tượng <strong>Chia sẻ (ô vuông mũi tên lên)</strong> ở thanh dưới → cuộn xuống chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong> → bấm <strong>Thêm</strong>.</div>
+              <div><strong>• Trên Android (Chrome):</strong> Bấm nút <strong>"Cài App"</strong> màu đỏ góc trên cùng hoặc bấm dấu <strong>⋮</strong> → chọn <strong>"Cài đặt ứng dụng"</strong>.</div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- THANH ĐIỀU HƯỚNG DƯỚI CÙNG TRÊN ĐIỆN THOẠI (CHUẨN APP iOS / ANDROID) -->
+    <nav class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-1 pt-1.5 safe-bottom grid grid-cols-5">
+      <button onclick="switchAdminTab('overview')" data-abtn="overview" class="admin-bottom-btn bottom-nav-active flex flex-col items-center justify-center py-1 text-[10px] font-semibold text-slate-500">
+        <span class="bnav-pill px-3 py-1 rounded-full mb-0.5"><i data-lucide="layout-dashboard" class="w-4 h-4"></i></span>
+        <span>Tổng quan</span>
+      </button>
+      <button onclick="switchAdminTab('prices')" data-abtn="prices" class="admin-bottom-btn flex flex-col items-center justify-center py-1 text-[10px] font-semibold text-slate-500">
+        <span class="bnav-pill px-3 py-1 rounded-full mb-0.5"><i data-lucide="badge-dollar-sign" class="w-4 h-4"></i></span>
+        <span>Đơn giá</span>
+      </button>
+      <button onclick="switchAdminTab('notice')" data-abtn="notice" class="admin-bottom-btn flex flex-col items-center justify-center py-1 text-[10px] font-semibold text-slate-500">
+        <span class="bnav-pill px-3 py-1 rounded-full mb-0.5"><i data-lucide="megaphone" class="w-4 h-4"></i></span>
+        <span>Thông báo</span>
+      </button>
+      <button onclick="switchAdminTab('tcvn')" data-abtn="tcvn" class="admin-bottom-btn flex flex-col items-center justify-center py-1 text-[10px] font-semibold text-slate-500">
+        <span class="bnav-pill px-3 py-1 rounded-full mb-0.5"><i data-lucide="book-open-check" class="w-4 h-4"></i></span>
+        <span>TCVN</span>
+      </button>
+      <button onclick="switchAdminTab('settings')" data-abtn="settings" class="admin-bottom-btn flex flex-col items-center justify-center py-1 text-[10px] font-semibold text-slate-500">
+        <span class="bnav-pill px-3 py-1 rounded-full mb-0.5"><i data-lucide="cloud-cog" class="w-4 h-4"></i></span>
+        <span>Cài đặt</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- MODAL HƯỚNG DẪN CÀI LÊN IPHONE / ANDROID -->
+  <div id="install-guide-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white rounded-3xl p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+          <i data-lucide="smartphone" class="w-4 h-4 text-[#8b1e2b]"></i>
+          <span>Cài DTU Admin lên Điện thoại</span>
+        </div>
+        <button onclick="closeInstallGuideModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">✕</button>
+      </div>
+      <div class="text-xs text-slate-600 space-y-3 leading-relaxed">
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 mb-1">Cho iPhone (Trình duyệt Safari):</div>
+          <div>1. Mở trang này bằng <strong>Safari</strong>.</div>
+          <div>2. Bấm nút <strong>Chia sẻ</strong> (ô vuông có mũi tên chỉ lên ở cạnh dưới).</div>
+          <div>3. Chọn <strong>"Thêm vào MH chính"</strong> → bấm <strong>Thêm</strong>.</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 mb-1">Cho Android (Trình duyệt Chrome):</div>
+          <div>Bấm dấu <strong>⋮</strong> ở góc phải trên → chọn <strong>"Cài đặt ứng dụng"</strong> hoặc <strong>"Thêm vào màn hình chính"</strong>.</div>
+        </div>
+      </div>
+      <button onclick="closeInstallGuideModal()" class="w-full py-2.5 rounded-xl btn-dtu font-bold text-xs">Đã hiểu</button>
+    </div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
