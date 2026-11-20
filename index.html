@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Trợ Lý AI Kỹ Sư Xây Dựng Toàn Diện | Khoa Xây Dựng - Đại Học Duy Tân (DTU)</title>
+  <link rel="icon" type="image/jpeg" href="logo-khoa-xay-dung-dtu.jpg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  <style>
+    /* =====================================================================
+       ARCHITECTURAL LIGHT STUDIO THEME — KHOA XÂY DỰNG • ĐH DUY TÂN (DTU)
+       Tông sáng giấy kỹ thuật: Thanh lịch, dễ đọc, dễ học, chuẩn kỹ sư
+       ===================================================================== */
+    :root {
+      --bg-canvas: #f5f6f8;
+      --bg-surface: #ffffff;
+      --bg-subtle: #f8fafc;
+      --border-subtle: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --dtu-crimson: #8b1e2b;
+      --dtu-crimson-dark: #6b141f;
+      --dtu-crimson-soft: #fdf2f4;
+      --dtu-gold: #e5be7e;
+    }
+
+    html, body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      overflow-x: hidden;
+      -webkit-text-size-adjust: 100%;
+      touch-action: manipulation;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+
+    /* Chống iOS Safari tự zoom khi chạm vào ô nhập liệu */
+    @media (max-width: 1024px) {
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+    }
+
+    /* Lưới giấy bản vẽ kỹ thuật siêu nhẹ, thoáng mắt */
+    .blueprint-grid {
+      background-color: var(--bg-canvas);
+      background-image:
+        linear-gradient(to right, rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+
+    /* Banner thương hiệu Khoa Xây Dựng • Đại Học Duy Tân */
+    .dtu-banner {
+      background: linear-gradient(100deg, #7c1824 0%, #5c1019 60%, #3d0a11 100%);
+      border: 1px solid rgba(229, 190, 126, 0.35);
+      box-shadow: 0 4px 16px -4px rgba(124, 24, 36, 0.22);
+    }
+    .dtu-banner h1, .dtu-banner .text-white { color: #ffffff !important; }
+    .dtu-banner p { color: #f8dce0 !important; }
+    .dtu-gold-text { color: var(--dtu-gold) !important; }
+
+    /* Card chuẩn Architectural Studio */
+    .ui-card, .ui-card-interactive {
+      background-color: var(--bg-surface) !important;
+      border: 1px solid var(--border-subtle) !important;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    .ui-card-interactive {
+      transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+    }
+    .ui-card-interactive:hover {
+      border-color: #94a3b8 !important;
+      box-shadow: 0 6px 16px -6px rgba(15, 23, 42, 0.1);
+      transform: translateY(-1px);
+    }
+
+    /* Đồng bộ hóa toàn bộ bề mặt & chữ sang Light Mode thanh lịch (không sót mảng tối lạc quẻ) */
+    aside#main-sidebar {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    header {
+      background-color: rgba(255, 255, 255, 0.92) !important;
+      border-color: #e2e8f0 !important;
+    }
+    footer {
+      background-color: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+
+    main .bg-slate-900, main .bg-slate-900\/90, main .bg-slate-900\/80, main .bg-slate-900\/60,
+    #pdf-export-modal .bg-slate-900, #gemini-link-modal .bg-slate-900 {
+      background-color: #ffffff !important;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    main .bg-slate-950, main .bg-slate-950\/90, main .bg-slate-950\/80,
+    aside .bg-\[\#10131b\],
+    #pdf-export-modal .bg-slate-950, #pdf-export-modal .bg-slate-950\/90,
+    #gemini-link-modal .bg-slate-950 {
+      background-color: #f8fafc !important;
+    }
+    main .bg-slate-800, header .bg-slate-900, #pdf-export-modal .bg-slate-800, #gemini-link-modal .bg-slate-800 {
+      background-color: #f1f5f9 !important;
+      color: #1e293b !important;
+    }
+    main .bg-slate-800:hover, header .bg-slate-900:hover {
+      background-color: #e2e8f0 !important;
+    }
+
+    /* Viền sáng mảnh chuyên nghiệp */
+    main .border-slate-800, main .border-slate-800\/80, main .border-slate-700, main .border-slate-700\/80, main .border-slate-700\/70,
+    aside .border-slate-800\/80, aside .border-white\/\[0\.08\],
+    header .border-slate-700, header .border-white\/\[0\.1\],
+    #pdf-export-modal .border-slate-700, #pdf-export-modal .border-slate-800,
+    #gemini-link-modal .border-slate-700, #gemini-link-modal .border-slate-800 {
+      border-color: #e2e8f0 !important;
+    }
+
+    /* Màu chữ sắc nét dễ đọc trên nền sáng */
+    main .text-white, aside .text-white, header .text-white,
+    #pdf-export-modal .text-white, #gemini-link-modal .text-white {
+      color: #0f172a !important;
+    }
+    /* Giữ chữ trắng trên các nút đậm và banner đậm */
+    .dtu-banner .text-white,
+    button.bg-\[\#7c1622\], button.bg-\[\#7c1622\] *,
+    button.bg-rose-500, button.bg-rose-500 *,
+    label.bg-rose-500, label.bg-rose-500 *,
+    #pdf-export-modal .from-\[\#65121b\] .text-white,
+    #gemini-link-modal .from-\[\#65121b\] .text-white {
+      color: #ffffff !important;
+    }
+
+    main .text-slate-100, main .text-slate-200, aside .text-zinc-300, header .text-zinc-200,
+    #pdf-export-modal .text-slate-200, #gemini-link-modal .text-slate-300 {
+      color: #1e293b !important;
+    }
+    main .text-slate-300, main .text-zinc-300, footer .text-slate-300,
+    #pdf-export-modal .text-slate-300 {
+      color: #334155 !important;
+    }
+    main .text-slate-400, main .text-zinc-400, aside .text-zinc-400, aside .text-zinc-500,
+    #pdf-export-modal .text-slate-400, #gemini-link-modal .text-slate-400 {
+      color: #64748b !important;
+    }
+
+    /* Tinh chỉnh các màu nhấn trên nền sáng cho dịu mắt, không chói */
+    main .text-amber-400, main .text-amber-300, main .text-\[\#dfa860\], footer .dtu-gold-text {
+      color: #9a3412 !important;
+    }
+    main .text-sky-400, main .text-sky-300 {
+      color: #0369a1 !important;
+    }
+    main .text-emerald-400, main .text-emerald-300, aside .text-emerald-400, header .text-emerald-300 {
+      color: #15803d !important;
+    }
+    main .text-rose-400, main .text-rose-300, main .text-rose-200 {
+      color: #b91c1c !important;
+    }
+    main .text-amber-200 {
+      color: #92400e !important;
+    }
+
+    /* Input, Select sắc nét trên nền sáng */
+    input, select, textarea {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #8b1e2b !important;
+      box-shadow: 0 0 0 3px rgba(139, 30, 43, 0.1) !important;
+    }
+    input::placeholder {
+      color: #94a3b8 !important;
+    }
+
+    /* Nút Sidebar đang chọn (Đỏ đô DTU tinh tế) */
+    aside .nav-btn:hover {
+      background-color: #f8fafc !important;
+    }
+    aside .nav-btn.nav-active {
+      background-color: #fdf2f4 !important;
+      color: #8b1e2b !important;
+      border-color: rgba(139, 30, 43, 0.28) !important;
+      font-weight: 600;
+    }
+
+    /* Giữ Tooltip lý do nguy hiểm trên ảnh công trường luôn nền tối chữ sáng để dễ đọc đè lên ảnh */
+    #site-boxes-overlay .bg-slate-950\/95 {
+      background-color: rgba(15, 23, 42, 0.94) !important;
+      color: #f8fafc !important;
+    }
+    #site-boxes-overlay .text-amber-300 {
+      color: #fcd34d !important;
+    }
+
+    /* Nút hành động chính lịch sự, hiện đại */
+    .btn-primary-dtu {
+      background-color: #8b1e2b !important;
+      color: #ffffff !important;
+    }
+    .btn-primary-dtu:hover {
+      background-color: #6b141f !important;
+    }
+
+    @media print {
+      aside, header, #mobile-sidebar-backdrop, .no-print { display: none !important; }
+      main { padding: 0 !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col lg:flex-row blueprint-grid">
+
+  <!-- LỚP NỀN MỜ KHI MỞ MENU TRÊN ĐIỆN THOẠI -->
+  <div id="mobile-sidebar-backdrop" onclick="closeMobileSidebar()" class="hidden fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-sm lg:hidden"></div>
+
+  <!-- THANH ĐIỀU HƯỚNG BÊN TRÁI (SIDEBAR - THU GỌN THÀNH NGĂN KÉO TRÊN ĐIỆN THOẠI) -->
+  <aside id="main-sidebar" class="fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-slate-950 border-r border-slate-800/90 flex flex-col justify-between shrink-0 overflow-y-auto transform -translate-x-full transition-transform duration-200 ease-out lg:static lg:translate-x-0 lg:z-auto">
+    <div>
+      <!-- Logo Khoa Xây Dựng - ĐH Duy Tân + Nút đóng trên Mobile -->
+      <div class="p-5 border-b border-slate-800/80 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl bg-white p-0.5 border border-slate-200 flex items-center justify-center shadow-sm shrink-0 overflow-hidden">
+            <img src="logo-khoa-xay-dung-dtu.jpg" alt="Logo Khoa Xây Dựng - Đại Học Duy Tân" class="w-full h-full object-contain" />
+          </div>
+          <div>
+            <div class="font-extrabold text-sm tracking-tight text-white">
+              KHOA XÂY DỰNG • DTU
+            </div>
+            <div class="text-[11px] text-[#e2b877] font-semibold">Trợ Lý AI Xây Dựng Toàn Diện</div>
+          </div>
+        </div>
+        <button type="button" onclick="closeMobileSidebar()" class="lg:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 text-lg leading-none" aria-label="Đóng menu">
+          ✕
+        </button>
+      </div>
+
+      <!-- Menu Điều hướng (Icon SVG Lucide sắc nét - Không dùng Emoji AI Slop) -->
+      <div class="p-3 space-y-1">
+        <div class="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Tổng quan &amp; 5 Phân hệ</div>
+
+        <button onclick="switchTab('intro')" data-tab="intro" class="nav-btn nav-active w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border border-transparent transition text-left">
+          <i data-lucide="building-2" class="w-4 h-4 shrink-0"></i>
+          <div>
+            <div class="leading-tight">Giới thiệu Hệ thống</div>
+            <div class="text-[11px] text-zinc-400 font-normal mt-0.5">Mục tiêu, Chức năng &amp; Lợi ích</div>
+          </div>
+        </button>
+
+        <button onclick="switchTab('estimator')" data-tab="estimator" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border border-transparent text-zinc-300 hover:bg-white/[0.04] transition text-left">
+          <i data-lucide="calculator" class="w-4 h-4 shrink-0"></i>
+          <div>
+            <div class="leading-tight">1. Dự toán &amp; Vật liệu Xanh</div>
+            <div class="text-[11px] text-zinc-500 font-normal mt-0.5">Bóc tách khối lượng &amp; Giảm CO₂</div>
+          </div>
+        </button>
+
+        <button onclick="switchTab('tcvn')" data-tab="tcvn" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border border-transparent text-zinc-300 hover:bg-white/[0.04] transition text-left">
+          <i data-lucide="ruler" class="w-4 h-4 shrink-0"></i>
+          <div>
+            <div class="leading-tight">2. Trợ lý TCVN &amp; Kết cấu</div>
+            <div class="text-[11px] text-zinc-500 font-normal mt-0.5">Tra cứu TCVN 5574:2018 &amp; QCVN 06</div>
+          </div>
+        </button>
+
+        <button onclick="switchTab('siteguard')" data-tab="siteguard" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border border-transparent text-zinc-300 hover:bg-white/[0.04] transition text-left">
+          <i data-lucide="hard-hat" class="w-4 h-4 shrink-0"></i>
+          <div>
+            <div class="leading-tight">3. Giám sát An toàn &amp; Nhật ký</div>
+            <div class="text-[11px] text-zinc-500 font-normal mt-0.5">Quét ảnh bảo hộ &amp; Nhật ký AI</div>
+          </div>
+        </button>
+
+        <button onclick="switchTab('crackdoctor')" data-tab="crackdoctor" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border border-transparent text-zinc-300 hover:bg-white/[0.04] transition text-left">
+          <i data-lucide="scan-search" class="w-4 h-4 shrink-0"></i>
+          <div>
+            <div class="leading-tight">4. Bác sĩ Công trình</div>
+            <div class="text-[11px] text-zinc-500 font-normal mt-0.5">Chẩn đoán vết nứt &amp; Sửa chữa</div>
+          </div>
+        </button>
+
+        <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border border-transparent text-zinc-300 hover:bg-white/[0.04] transition text-left">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 shrink-0"></i>
+          <div>
+            <div class="leading-tight">5. Tổng quan Dự án</div>
+            <div class="text-[11px] text-zinc-500 font-normal mt-0.5">Tổng hợp số liệu từ 4 mục trên</div>
+          </div>
+        </button>
+
+        <div class="pt-3 mt-3 border-t border-white/[0.08]">
+          <div class="px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">Hệ thống AI</div>
+          <button onclick="switchTab('aisettings')" data-tab="aisettings" class="nav-btn w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium border border-transparent text-emerald-400 hover:bg-white/[0.04] transition text-left">
+            <i data-lucide="key-round" class="w-4 h-4 shrink-0"></i>
+            <div>
+              <div class="leading-tight">Kết nối AI &amp; API Key</div>
+              <div class="text-[11px] text-zinc-500 font-normal mt-0.5">Liên kết Gemini &amp; Chọn Model</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hộp thông tin đơn vị & xuất báo cáo -->
+    <div class="p-4 m-3 rounded-xl bg-[#10131b] border border-white/[0.08] space-y-3">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold text-[#dfa860]">Đại Học Duy Tân (DTU)</span>
+        <span class="text-[10px] px-2 py-0.5 rounded bg-[#7c1622]/40 text-[#f3d4a3] border border-[#dfa860]/30 font-medium">Khoa Xây Dựng</span>
+      </div>
+      <p class="text-xs text-zinc-400 leading-relaxed">
+        Tích hợp 2 chế độ: Mô phỏng kỹ thuật nhanh hoặc kết nối Gemini API để phân tích ảnh thực tế.
+      </p>
+      <button type="button" onclick="openPdfExportModal()" class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-[#7c1622] hover:bg-[#931c2a] text-xs font-semibold text-white border border-[#dfa860]/30 transition">
+        <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
+        <span>Xuất Hồ sơ Kỹ thuật (.PDF)</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- KHU VỰC NỘI DUNG CHÍNH -->
+  <div class="flex-1 flex flex-col min-w-0 justify-between">
+    <div>
+      <!-- THANH HEADER SIÊU GỌN (CÓ NÚT 3 GẠCH ☰ TRÊN ĐIỆN THOẠI) -->
+      <header class="bg-slate-950/90 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 py-3 flex items-center justify-between gap-2 sticky top-0 z-30">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <!-- Nút 3 gạch (Hamburger) hiện trên điện thoại/máy tính bảng -->
+          <button
+            type="button"
+            onclick="toggleMobileSidebar()"
+            aria-label="Mở menu danh mục"
+            class="lg:hidden p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-100 shrink-0 transition"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+
+          <button
+            type="button"
+            onclick="switchTab('aisettings')"
+            id="ai-status-badge"
+            title="Bấm để mở trang Kết nối AI & API Key"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition truncate max-w-[200px] sm:max-w-none"
+          >
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+            <span class="truncate">Chế độ Mô phỏng</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <select
+            id="gemini-model-select"
+            onchange="selectGeminiModel(this.value)"
+            class="hidden px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs text-emerald-300 focus:outline-none max-w-[140px] sm:max-w-[190px]"
+            title="Chọn model Gemini từ tài khoản của bạn"
+          ></select>
+          <button
+            type="button"
+            id="btn-header-ai-page"
+            onclick="switchTab('aisettings')"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-zinc-200 border border-white/[0.1] font-medium text-xs transition shrink-0"
+          >
+            <i data-lucide="key-round" class="w-3.5 h-3.5 text-emerald-400"></i>
+            <span>Cài đặt AI</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- NỘI DUNG CHÍNH + BANNER ĐẠI HỌC DUY TÂN -->
+      <main class="p-4 sm:p-6 max-w-7xl w-full mx-auto space-y-6">
+
+        <!-- BANNER ĐỎ ĐÔ - VÀNG ĐỒNG CHUẨN MẪU ĐẠI HỌC DUY TÂN • KHOA XÂY DỰNG -->
+        <div class="dtu-banner rounded-3xl px-7 py-6 flex flex-col justify-center space-y-1.5">
+          <div class="text-xs sm:text-sm font-extrabold tracking-[0.14em] uppercase dtu-gold-text">
+            ĐẠI HỌC DUY TÂN • KHOA XÂY DỰNG
+          </div>
+          <h1 class="text-xl sm:text-3xl lg:text-4xl font-black tracking-tight uppercase leading-tight">
+            <span class="text-white">KIẾN TẠO XÂY DỰNG SỐ AI</span>
+            <span class="dtu-gold-text"> &amp; QUẢN LÝ CÔNG TRÌNH TOÀN DIỆN</span>
+          </h1>
+          <p class="text-xs sm:text-sm text-rose-100/80 font-medium pt-0.5">
+            Hệ Thống Trợ Lý Kỹ Thuật, Dự Toán Vật Liệu Xanh, Tra Cứu TCVN, Giám Sát An Toàn &amp; Chẩn Đoán Kết Cấu Xây Dựng Thông Minh
+          </p>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- TRANG ĐẦU TIÊN: GIỚI THIỆU HỆ THỐNG, CHỨC NĂNG & LỢI ÍCH -->
+        <!-- ================================================================== -->
+        <section id="panel-intro" class="tab-panel space-y-6">
+          <!-- Khối Giới thiệu Tổng quan -->
+          <div class="ui-card p-6 space-y-4">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+              <div class="space-y-2.5 max-w-3xl">
+                <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#7c1622]/30 border border-[#dfa860]/30 text-[#dfa860] text-[11px] font-semibold tracking-wide uppercase">
+                  <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                  <span>Nền tảng Trí tuệ Nhân tạo Ngành Xây dựng</span>
+                </div>
+                <h2 class="text-2xl font-bold tracking-tight text-white">
+                  Giới thiệu Nền tảng Kiến Tạo Xây Dựng Số AI
+                </h2>
+                <p class="text-sm text-zinc-300 leading-relaxed">
+                  <strong>Kiến Tạo Xây Dựng Số AI &amp; Quản Lý Công Trình Toàn Diện</strong> là hệ sinh thái Web kỹ thuật được thiết kế cho ngành Xây dựng Việt Nam.
+                  Nền tảng kết hợp <strong>Trí tuệ Nhân tạo Đa phương thức (Gemini Vision &amp; Text)</strong> cùng <strong>công thức tính toán chuẩn và tiêu chuẩn TCVN/QCVN</strong> để đồng hành xuyên suốt 5 giai đoạn vòng đời công trình — từ dự toán sơ bộ, thẩm tra thiết kế, giám sát an toàn hiện trường đến kiểm định bảo trì kết cấu.
+                </p>
+              </div>
+              <div class="flex flex-wrap gap-2.5">
+                <button onclick="switchTab('estimator')" class="btn-primary-dtu inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-xs transition shadow-sm">
+                  <span>Bắt đầu từ Mục 1: Dự toán</span>
+                  <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="switchTab('aisettings')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-zinc-200 border border-white/[0.12] font-semibold text-xs transition">
+                  <i data-lucide="key-round" class="w-3.5 h-3.5 text-emerald-400"></i>
+                  <span>Kết nối AI Gemini Thật</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5 Chức năng Cốt lõi của Hệ thống -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <i data-lucide="grid" class="w-3.5 h-3.5 text-[#dfa860]"></i>
+              <span>5 Chức năng Cốt lõi Xuyên suốt Vòng đời Công trình</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div onclick="switchTab('estimator')" class="ui-card-interactive cursor-pointer p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-mono-tech text-[11px] font-medium text-zinc-400">01 / DỰ TOÁN</span>
+                </div>
+                <div class="font-semibold text-white text-sm">Dự toán Chi phí &amp; Vật liệu Xanh</div>
+                <p class="text-xs text-zinc-400 leading-relaxed">
+                  Tự động tính hệ số diện tích xây dựng, bóc tách khối lượng bê tông M300, cốt thép, xi măng, gạch; tính lượng CO₂ giảm thiểu &amp; điện năng tiết kiệm khi dùng gạch AAC, kính cản nhiệt.
+                </p>
+                <div class="inline-flex items-center gap-1 text-xs font-medium text-[#dfa860] pt-1">
+                  <span>Mở chức năng</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </div>
+              </div>
+
+              <div onclick="switchTab('tcvn')" class="ui-card-interactive cursor-pointer p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="w-9 h-9 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                    <i data-lucide="ruler" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-mono-tech text-[11px] font-medium text-zinc-400">02 / TIÊU CHUẨN</span>
+                </div>
+                <div class="font-semibold text-white text-sm">Trợ lý Tra cứu TCVN &amp; Kiểm tra Kết cấu</div>
+                <p class="text-xs text-zinc-400 leading-relaxed">
+                  Kiểm tra tự động chiều cao dầm, chiều dày sàn, lớp bê tông bảo vệ cốt thép c<sub>0</sub> theo TCVN 5574:2018 và hỏi đáp AI trích dẫn điều khoản TCVN 2737:2023, QCVN 06:2022/BXD, TCVN 9362.
+                </p>
+                <div class="inline-flex items-center gap-1 text-xs font-medium text-sky-400 pt-1">
+                  <span>Mở chức năng</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </div>
+              </div>
+
+              <div onclick="switchTab('siteguard')" class="ui-card-interactive cursor-pointer p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <i data-lucide="hard-hat" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-mono-tech text-[11px] font-medium text-zinc-400">03 / AN TOÀN HSE</span>
+                </div>
+                <div class="font-semibold text-white text-sm">Giám sát An toàn &amp; Nhật ký Công trường</div>
+                <p class="text-xs text-zinc-400 leading-relaxed">
+                  Tải ảnh thực tế công trường để AI Vision khoanh vùng nguy hiểm (thiếu mũ cứng, kính, chụp bảo vệ máy cắt, giàn giáo...), nêu rõ lý do, tự lập Nhật ký thi công &amp; cho phép hỏi đáp tiếp.
+                </p>
+                <div class="inline-flex items-center gap-1 text-xs font-medium text-emerald-400 pt-1">
+                  <span>Mở chức năng</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </div>
+              </div>
+
+              <div onclick="switchTab('crackdoctor')" class="ui-card-interactive cursor-pointer p-5 space-y-3">
+                <div class="flex items-center justify-between">
+                  <div class="w-9 h-9 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                    <i data-lucide="scan-search" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-mono-tech text-[11px] font-medium text-zinc-400">04 / KIỂM ĐỊNH</span>
+                </div>
+                <div class="font-semibold text-white text-sm">Bác sĩ Công trình – Chẩn đoán Vết nứt</div>
+                <p class="text-xs text-zinc-400 leading-relaxed">
+                  Nhận diện hình thái vết nứt kết cấu &amp; thấm dột từ ảnh chụp thật, đối chiếu giới hạn bề rộng vết nứt TCVN 5574:2018, lập phác đồ sửa chữa và bảng định mức hóa chất theo đơn giá chuẩn.
+                </p>
+                <div class="inline-flex items-center gap-1 text-xs font-medium text-rose-400 pt-1">
+                  <span>Mở chức năng</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </div>
+              </div>
+
+              <div onclick="switchTab('dashboard')" class="ui-card-interactive cursor-pointer p-5 space-y-3 md:col-span-2">
+                <div class="flex items-center justify-between">
+                  <div class="w-9 h-9 rounded-lg bg-white/[0.06] border border-white/[0.12] flex items-center justify-center text-zinc-200">
+                    <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+                  </div>
+                  <span class="font-mono-tech text-[11px] font-medium text-zinc-400">05 / TỔNG HỢP &amp; PDF</span>
+                </div>
+                <div class="font-semibold text-white text-sm">Tổng quan Dự án – Đồng bộ Dữ liệu Thực tế &amp; Xuất Hồ sơ PDF</div>
+                <p class="text-xs text-zinc-400 leading-relaxed">
+                  Tự động tổng hợp toàn bộ số liệu thực tế từ 4 phân hệ trước (Tổng mức đầu tư, Điểm an toàn công trường, Lượng giảm phát thải CO₂, Đánh giá kết cấu &amp; TCVN) lên biểu đồ sức khỏe dự án và xuất hồ sơ kỹ thuật khổ A4 (.pdf).
+                </p>
+                <div class="inline-flex items-center gap-1 text-xs font-medium text-zinc-200 pt-1">
+                  <span>Xem bảng tổng hợp</span>
+                  <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Hệ thống giúp ích gì cho từng đối tượng? -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-2 text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span>Giá trị &amp; Lợi ích Thực tiễn Mang lại</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="ui-card p-5 space-y-2.5">
+                <div class="flex items-center gap-2 font-semibold text-white text-sm">
+                  <i data-lucide="graduation-cap" class="w-4 h-4 text-[#dfa860]"></i>
+                  <span>Sinh viên Ngành Xây dựng</span>
+                </div>
+                <ul class="text-xs text-zinc-400 space-y-1.5 leading-relaxed">
+                  <li>- Tra cứu tức thì điều khoản TCVN/QCVN kèm số hiệu chuẩn khi làm Đồ án môn học &amp; Đồ án Tốt nghiệp.</li>
+                  <li>- Kiểm tra nhanh kích thước sơ bộ dầm, sàn, lớp bảo vệ cốt thép tránh sai sót cơ bản.</li>
+                  <li>- Thực hành phân tích bệnh học kết cấu và an toàn lao động trực quan bằng AI.</li>
+                </ul>
+              </div>
+
+              <div class="ui-card p-5 space-y-2.5">
+                <div class="flex items-center gap-2 font-semibold text-white text-sm">
+                  <i data-lucide="wrench" class="w-4 h-4 text-sky-400"></i>
+                  <span>Kỹ sư Hiện trường &amp; Nhà thầu</span>
+                </div>
+                <ul class="text-xs text-zinc-400 space-y-1.5 leading-relaxed">
+                  <li>- Tiết kiệm hàng giờ bóc tách khối lượng sơ bộ và viết Nhật ký công trường cuối ngày.</li>
+                  <li>- Phát hiện sớm rủi ro tai nạn lao động (thiếu PPE, máy cắt thiếu chụp bảo vệ, giàn giáo) qua ảnh chụp điện thoại.</li>
+                  <li>- Hỏi đáp sâu trực tiếp với AI ngay trên dữ liệu ảnh thực tế để ra biện pháp xử lý nhanh.</li>
+                </ul>
+              </div>
+
+              <div class="ui-card p-5 space-y-2.5">
+                <div class="flex items-center gap-2 font-semibold text-white text-sm">
+                  <i data-lucide="leaf" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Chủ đầu tư &amp; Mục tiêu Net Zero</span>
+                </div>
+                <ul class="text-xs text-zinc-400 space-y-1.5 leading-relaxed">
+                  <li>- Minh bạch dự toán chi phí xây dựng và chi phí sửa chữa hư hỏng theo bảng đơn giá chuẩn.</li>
+                  <li>- Định lượng rõ lợi ích tài chính và lượng CO₂ cắt giảm khi ứng dụng vật liệu xanh (gạch AAC, kính cản nhiệt).</li>
+                  <li>- Thúc đẩy chuyển đổi số và phát triển công trình bền vững tại Việt Nam.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- PHÂN HỆ 5: TỔNG QUAN DỰ ÁN (TỔNG HỢP SỐ LIỆU TỪ 4 PHÂN HỆ TRƯỚC) -->
+        <!-- ================================================================== -->
+        <section id="panel-dashboard" class="tab-panel hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold text-white">Tổng quan Dự án – Trung tâm Tổng hợp Dữ liệu Thực tế</h2>
+              <p class="text-sm text-slate-400">Tổng hợp toàn bộ số liệu thực tế từ 4 phân hệ trước: Dự toán (Mục 1), Tiêu chuẩn TCVN (Mục 2), An toàn công trường (Mục 3) &amp; Bác sĩ Công trình (Mục 4).</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="switchTab('estimator')" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-lg shadow-amber-500/20">
+                + Lập Dự toán (Mục 1)
+              </button>
+              <button onclick="switchTab('siteguard')" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold text-xs border border-slate-700 transition">
+                Quét Ảnh Công Trường (Mục 3)
+              </button>
+              <button onclick="resetProjectDashboard()" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 font-semibold text-xs border border-slate-800 transition" title="Xóa dữ liệu phiên hiện tại">
+                🗑️ Đặt lại
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Thẻ chỉ số chính (Cập nhật trực tiếp từ dữ liệu thật của 4 phân hệ) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div onclick="switchTab('estimator')" class="cursor-pointer p-4 rounded-2xl bg-slate-900/90 hover:border-amber-500/50 border border-slate-800 space-y-1 transition">
+              <div class="flex justify-between text-xs text-slate-400">
+                <span>Tổng Mức Đầu Tư Dự Kiến</span>
+                <span class="text-amber-400 font-semibold">Mục 1</span>
+              </div>
+              <div id="dash-kpi-cost" class="text-xl font-extrabold text-slate-500">Chưa có dữ liệu</div>
+              <div id="dash-kpi-cost-sub" class="text-xs text-slate-400">Vào Mục 1 để nhập thông số &amp; lập dự toán</div>
+            </div>
+
+            <div onclick="switchTab('siteguard')" class="cursor-pointer p-4 rounded-2xl bg-slate-900/90 hover:border-sky-500/50 border border-slate-800 space-y-1 transition">
+              <div class="flex justify-between text-xs text-slate-400">
+                <span>Điểm An Toàn Công Trường</span>
+                <span class="text-sky-400 font-semibold">Mục 3</span>
+              </div>
+              <div id="dash-kpi-safety" class="text-xl font-extrabold text-slate-500">Chưa có dữ liệu</div>
+              <div id="dash-kpi-safety-sub" class="text-xs text-slate-400">Tải ảnh công trường ở Mục 3 để AI chấm điểm</div>
+            </div>
+
+            <div onclick="switchTab('estimator')" class="cursor-pointer p-4 rounded-2xl bg-slate-900/90 hover:border-emerald-500/50 border border-slate-800 space-y-1 transition">
+              <div class="flex justify-between text-xs text-slate-400">
+                <span>Giảm Phát Thải Carbon</span>
+                <span class="text-emerald-400 font-semibold">Mục 1 (Xanh)</span>
+              </div>
+              <div id="dash-kpi-carbon" class="text-xl font-extrabold text-slate-500">Chưa có dữ liệu</div>
+              <div id="dash-kpi-carbon-sub" class="text-xs text-slate-400">Bật gói Vật liệu Xanh ở Mục 1 để tính CO₂</div>
+            </div>
+
+            <div onclick="switchTab('crackdoctor')" class="cursor-pointer p-4 rounded-2xl bg-slate-900/90 hover:border-rose-500/50 border border-slate-800 space-y-1 transition">
+              <div class="flex justify-between text-xs text-slate-400">
+                <span>Kiểm Định Kết Cấu &amp; TCVN</span>
+                <span class="text-rose-400 font-semibold">Mục 2 &amp; 4</span>
+              </div>
+              <div id="dash-kpi-struct" class="text-xl font-extrabold text-slate-500">Chưa có dữ liệu</div>
+              <div id="dash-kpi-struct-sub" class="text-xs text-slate-400">Kiểm tra TCVN (Mục 2) hoặc quét vết nứt (Mục 4)</div>
+            </div>
+          </div>
+
+          <!-- Biểu đồ Tổng hợp Dữ liệu Thật + Truy cập nhanh -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="font-bold text-base text-white">Biểu đồ Tổng hợp Sức khỏe Dự án (Dữ liệu Thực tế)</h3>
+                  <p class="text-xs text-slate-400">Tự động cập nhật khi bạn lập dự toán, kiểm tra TCVN, quét an toàn hoặc chẩn đoán kết cấu</p>
+                </div>
+                <span id="dash-data-count" class="text-xs px-2.5 py-1 rounded-lg bg-slate-800 text-slate-400">0/4 phân hệ có dữ liệu</span>
+              </div>
+              <div class="h-64 relative flex items-center justify-center">
+                <div id="dash-chart-empty" class="text-center space-y-2 px-6">
+                  <div class="text-3xl">📊</div>
+                  <div class="text-sm font-semibold text-slate-300">Chưa có dữ liệu dự án nào được tạo</div>
+                  <p class="text-xs text-slate-400 max-w-md mx-auto">
+                    Hệ thống không hiển thị số liệu ảo. Hãy bắt đầu bằng cách bấm <strong>"+ Lập Dự toán Mới"</strong> hoặc <strong>"Quét Ảnh Công Trường"</strong> — biểu đồ và các chỉ số sẽ tự động cập nhật theo dữ liệu thật của bạn!
+                  </p>
+                </div>
+                <canvas id="chart-dashboard-progress" class="hidden"></canvas>
+              </div>
+            </div>
+
+            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+              <h3 class="font-bold text-base text-white">Truy cập nhanh 5 Phân hệ Chuyên ngành</h3>
+              <p class="text-xs text-slate-400">Chọn phân hệ để trải nghiệm hoặc thuyết trình trước Ban Giám khảo:</p>
+
+              <div class="space-y-2.5 pt-1">
+                <button onclick="switchTab('estimator')" class="w-full p-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 flex items-center justify-between transition text-left">
+                  <div>
+                    <div class="text-sm font-semibold text-amber-400">🧮 Bóc tách Khối lượng &amp; Dự toán</div>
+                    <div class="text-xs text-slate-400">Tính bê tông, cốt thép, gạch AAC &amp; tiền điện</div>
+                  </div>
+                  <span class="text-slate-400">→</span>
+                </button>
+
+                <button onclick="switchTab('tcvn')" class="w-full p-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 flex items-center justify-between transition text-left">
+                  <div>
+                    <div class="text-sm font-semibold text-sky-400">📐 Kiểm tra Tiết diện &amp; Tra cứu TCVN</div>
+                    <div class="text-xs text-slate-400">Đối chiếu TCVN 5574:2018, 2737:2023</div>
+                  </div>
+                  <span class="text-slate-400">→</span>
+                </button>
+
+                <button onclick="switchTab('siteguard')" class="w-full p-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 flex items-center justify-between transition text-left">
+                  <div>
+                    <div class="text-sm font-semibold text-emerald-400">🦺 AI Quét An toàn Công trường</div>
+                    <div class="text-xs text-slate-400">Phát hiện lỗi bảo hộ &amp; Viết nhật ký tự động</div>
+                  </div>
+                  <span class="text-slate-400">→</span>
+                </button>
+
+                <button onclick="switchTab('crackdoctor')" class="w-full p-3 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 flex items-center justify-between transition text-left">
+                  <div>
+                    <div class="text-sm font-semibold text-rose-400">🩺 Bác sĩ Chẩn đoán Vết nứt Công trình</div>
+                    <div class="text-xs text-slate-400">Phân tích nứt cắt 45°, nứt uốn &amp; quy trình xử lý</div>
+                  </div>
+                  <span class="text-slate-400">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- PHÂN HỆ 1: DỰ TOÁN CHI PHÍ, KỸ THUẬT CÔNG TRÌNH & BÓC TÁCH KHỐI LƯỢNG -->
+        <!-- ================================================================== -->
+        <section id="panel-estimator" class="tab-panel hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold text-white">Dự toán Chi phí, Kỹ thuật Công trình &amp; Bóc tách Khối lượng (BOQ)</h2>
+              <p class="text-sm text-slate-400">Tính hệ số diện tích xây dựng, tải trọng sơ bộ, tiến độ nhân công, bóc tách khối lượng 10 hạng mục chuẩn kỹ thuật và hiệu quả Vật liệu Xanh.</p>
+            </div>
+            <button onclick="runEstimatorAIAdvice()" class="btn-primary-dtu inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-xs shadow-sm transition">
+              <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+              <span>AI Tư vấn Tối ưu Ngân sách &amp; Kết cấu</span>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Form nhập thông số kỹ thuật công trình mở rộng -->
+            <div class="lg:col-span-4 ui-card p-5 space-y-3.5">
+              <h3 class="font-bold text-sm text-amber-400 border-b border-slate-800 pb-2 uppercase tracking-wide">1. Thông số Kỹ thuật Công trình</h3>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Loại hình công trình</label>
+                <select id="est-type" onchange="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm">
+                  <option value="nhapho" selected>Nhà phố liền kề (1-2 mặt thoáng)</option>
+                  <option value="bietthu">Biệt thự / Nhà vườn (4 mặt thoáng)</option>
+                  <option value="vanphong">Nhà văn phòng / Thương mại kết hợp</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Diện tích sàn / tầng (m²)</label>
+                  <input id="est-area" type="number" value="100" min="30" max="2000" oninput="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm tabular-nums" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Số tầng cao</label>
+                  <input id="est-floors" type="number" value="3" min="1" max="15" oninput="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm tabular-nums" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Chiều cao tầng H<sub>t</sub> (m)</label>
+                  <select id="est-floor-h" onchange="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm">
+                    <option value="3.3">3,3 m (Nhà ở chuẩn)</option>
+                    <option value="3.6" selected>3,6 m (Thông thoáng)</option>
+                    <option value="3.9">3,9 m (Văn phòng / Tầng 1 cao)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Tầng hầm / Bán hầm</label>
+                  <select id="est-basement" onchange="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm">
+                    <option value="none" selected>Không có tầng hầm</option>
+                    <option value="semi">Bán hầm (Hệ số 150%)</option>
+                    <option value="full">1 Tầng hầm sâu 2,2m (170%)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Giải pháp Kết cấu Móng</label>
+                <select id="est-foundation" onchange="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm">
+                  <option value="don">Móng đơn BTCT (Đất nền tốt - Hệ số 35%)</option>
+                  <option value="bang" selected>Móng băng 1-2 phương (Phổ biến - Hệ số 55%)</option>
+                  <option value="coc">Móng cọc ép BTCT / Cọc khoan nhồi (Hệ số 65%)</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Kết cấu Mái</label>
+                <select id="est-roof" onchange="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm">
+                  <option value="ton">Mái tôn chống nóng (Hệ số 30%)</option>
+                  <option value="btct" selected>Mái bằng BTCT toàn khối (Hệ số 50%)</option>
+                  <option value="ngoi">Hệ vì kèo thép lợp ngói / Mái Thái (Hệ số 75%)</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Cấp Bê tông &amp; Thép</label>
+                  <select id="est-concrete-grade" onchange="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm">
+                    <option value="B20">B20 (M250) / CB300-V</option>
+                    <option value="B22.5" selected>B22.5 (M300) / CB400-V</option>
+                    <option value="B25">B25 (M350) / CB400-V</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-300 mb-1">Khu vực thi công</label>
+                  <select id="est-region" onchange="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm">
+                    <option value="danang" selected>Đà Nẵng – Miền Trung</option>
+                    <option value="hcm">TP.HCM – Miền Nam</option>
+                    <option value="hanoi">Hà Nội – Miền Bắc</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Gói Vật tư Hoàn thiện</label>
+                <select id="est-package" onchange="calculateEstimation()" class="w-full px-3 py-2 rounded-lg border text-sm">
+                  <option value="basic">Gói Cơ bản (Tiết kiệm chi phí)</option>
+                  <option value="standard" selected>Gói Tiêu chuẩn Khá (Phổ thông)</option>
+                  <option value="premium">Gói Cao cấp (Biệt thự / Văn phòng hạng A)</option>
+                </select>
+              </div>
+
+              <div class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-2">
+                <div>
+                  <div class="text-xs font-bold text-emerald-300">Kích hoạt Gói Vật liệu Xanh</div>
+                  <div class="text-[11px] text-slate-400">Gạch nhẹ AAC + Kính cản nhiệt + Xi măng xanh</div>
+                </div>
+                <input id="est-eco-toggle" type="checkbox" checked onchange="calculateEstimation()" class="w-5 h-5 accent-emerald-600 rounded cursor-pointer shrink-0" />
+              </div>
+            </div>
+
+            <!-- Kết quả Tổng hợp Tài chính, Kỹ thuật & Biểu đồ -->
+            <div class="lg:col-span-8 space-y-5">
+              <!-- 3 Thẻ chỉ số chính -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="ui-card p-4">
+                  <div class="text-xs text-slate-400">Tổng Kinh Phí Dự Toán (Gồm 5% dự phòng)</div>
+                  <div id="out-total-cost" class="text-2xl font-extrabold text-amber-400 mt-1 tabular-nums">--</div>
+                  <div class="text-xs text-slate-400 mt-1">Diện tích quy đổi: <strong id="out-built-area" class="text-slate-200">--</strong></div>
+                </div>
+
+                <div class="ui-card p-4">
+                  <div class="text-xs text-slate-400">Hiệu quả Công trình Xanh (ESG)</div>
+                  <div id="eco-co2" class="text-2xl font-extrabold text-emerald-400 mt-1 tabular-nums">--</div>
+                  <div class="text-xs text-slate-400 mt-1">Tiết kiệm điện: <strong id="eco-elec" class="text-sky-300">--</strong></div>
+                </div>
+
+                <div class="ui-card p-4">
+                  <div class="text-xs text-slate-400">Kỹ thuật Kết cấu &amp; Tiến độ</div>
+                  <div id="tech-duration" class="text-2xl font-extrabold text-sky-400 mt-1 tabular-nums">--</div>
+                  <div class="text-xs text-slate-400 mt-1">Tải trọng móng: <strong id="tech-load" class="text-slate-200">--</strong></div>
+                </div>
+              </div>
+
+              <!-- Tóm tắt Vật tư Chính + Biểu đồ -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="ui-card p-5 space-y-2.5">
+                  <h3 class="font-bold text-sm text-white">Tổng hợp Vật tư Chính &amp; Nhân công</h3>
+                  <div class="space-y-2 text-xs sm:text-sm tabular-nums">
+                    <div class="flex justify-between py-1.5 border-b border-slate-800">
+                      <span class="text-slate-400">Phần thô &amp; Nhân công:</span>
+                      <span id="out-raw-cost" class="font-semibold text-white">--</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-800">
+                      <span class="text-slate-400">Hoàn thiện &amp; Điện nước (MEP):</span>
+                      <span id="out-finish-cost" class="font-semibold text-white">--</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-800">
+                      <span class="text-slate-400">Bê tông thương phẩm:</span>
+                      <span id="mat-concrete" class="font-semibold text-amber-400">--</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-800">
+                      <span class="text-slate-400">Cốt thép (Chủ + Đai/Sàn):</span>
+                      <span id="mat-steel" class="font-semibold text-sky-400">--</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-800">
+                      <span class="text-slate-400">Xi măng / Cát / Đá 1×2:</span>
+                      <span id="mat-cement" class="font-semibold text-slate-200 text-right">--</span>
+                    </div>
+                    <div class="flex justify-between py-1.5 border-b border-slate-800">
+                      <span class="text-slate-400">Khối xây tường:</span>
+                      <span id="mat-brick" class="font-semibold text-emerald-400 text-right">--</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                      <span class="text-slate-400">Định mức nhân công dự kiến:</span>
+                      <span id="tech-mandays" class="font-semibold text-slate-200">--</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="ui-card p-5 flex flex-col">
+                  <h3 class="font-bold text-sm text-white mb-2">Cơ cấu Phân bổ Chi phí Xây dựng</h3>
+                  <div class="h-56 relative flex-1">
+                    <canvas id="chart-estimator"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Khuyến nghị từ AI -->
+              <div id="est-ai-response" class="ui-card p-5">
+                <div class="text-xs text-slate-400">Bấm nút <strong>"AI Tư vấn Tối ưu Ngân sách &amp; Kết cấu"</strong> ở góc phải phía trên để AI phân tích chuyên sâu theo đúng thông số kỹ thuật, khu vực và loại móng bạn đã chọn.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BẢNG BÓC TÁCH KHỐI LƯỢNG CHI TIẾT (BOQ - 10 HẠNG MỤC CHUẨN KỸ THUẬT) -->
+          <div class="ui-card p-5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <h3 class="font-bold text-base text-white">Bảng Bóc Tách Khối Lượng &amp; Dự Toán Chi Tiết (BOQ – 12 Hạng Mục: Vật liệu, Nhân công &amp; Máy thi công)</h3>
+                <p class="text-xs text-slate-400">Tham chiếu cấu trúc định mức Thông tư 12/2021/TT-BXD — Tự động tính lại theo diện tích, chiều cao tầng H<sub>t</sub>, tầng hầm và loại vật liệu.</p>
+              </div>
+              <span class="font-mono-tech text-[11px] px-2.5 py-1 rounded bg-slate-800 text-slate-300">Đơn vị tính: VNĐ</span>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs sm:text-sm text-left tabular-nums">
+                <thead>
+                  <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase">
+                    <th class="py-2.5 pr-3 font-semibold">Mã CT</th>
+                    <th class="py-2.5 pr-3 font-semibold">Hạng mục Công tác &amp; Quy cách Kỹ thuật</th>
+                    <th class="py-2.5 px-2 text-center font-semibold">ĐVT</th>
+                    <th class="py-2.5 px-2 text-right font-semibold">Khối lượng</th>
+                    <th class="py-2.5 px-2 text-right font-semibold hidden sm:table-cell">Đơn giá (đ)</th>
+                    <th class="py-2.5 pl-2 text-right font-semibold">Thành tiền (đ)</th>
+                  </tr>
+                </thead>
+                <tbody id="boq-detail-body" class="divide-y divide-slate-800"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- PHÂN HỆ 3: TRỢ LÝ TRA CỨU TCVN & KIỂM TRA KẾT CẤU NHANH -->
+        <!-- ================================================================== -->
+        <section id="panel-tcvn" class="tab-panel hidden space-y-6">
+          <div>
+            <h2 class="text-xl font-bold text-white">Trợ lý Tra cứu Tiêu chuẩn Xây dựng (TCVN) &amp; Kiểm tra Kết cấu</h2>
+            <p class="text-sm text-slate-400">Tra cứu chính xác điều khoản TCVN 5574:2018, TCVN 2737:2023, QCVN 06:2022/BXD và kiểm tra nhanh kích thước tiết diện dầm, sàn, lớp bê tông bảo vệ.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Công cụ kiểm tra tiết diện -->
+            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-base text-sky-400">⚡ Kiểm tra Nhanh Tiết diện &amp; Bảo vệ Cốt thép (TCVN 5574:2018)</h3>
+                <span class="text-xs px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">Tự động kiểm tra</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Nhịp dầm tính toán L (m)</label>
+                  <input id="chk-span" type="number" step="0.5" value="6.0" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Chiều cao dầm chọn h (mm)</label>
+                  <input id="chk-beam-h" type="number" step="50" value="500" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Chiều dày bản sàn h<sub>s</sub> (mm)</label>
+                  <input id="chk-slab-h" type="number" step="10" value="120" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Lớp bê tông bảo vệ c<sub>0</sub> (mm)</label>
+                  <input id="chk-cover" type="number" step="5" value="25" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs text-slate-300 mb-1">Điều kiện môi trường làm việc của kết cấu</label>
+                <select id="chk-env" onchange="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                  <option value="indoor">Trong nhà có mái che (Độ ẩm bình thường)</option>
+                  <option value="outdoor">Ngoài trời chịu mưa nắng trực tiếp</option>
+                  <option value="foundation">Trong đất / Đài móng (Có lớp bê tông lót)</option>
+                  <option value="marine">Môi trường biển / Xâm thực khí quyển mạnh</option>
+                </select>
+              </div>
+
+              <div id="tcvn-check-result" class="pt-2"></div>
+            </div>
+
+            <!-- Hỏi đáp trích dẫn TCVN -->
+            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between space-y-4">
+              <div class="space-y-3">
+                <h3 class="font-bold text-base text-amber-400 border-b border-slate-800 pb-3">📚 Hỏi đáp Trích dẫn Tiêu chuẩn Xây dựng Việt Nam</h3>
+
+                <div class="text-xs text-slate-400">Câu hỏi mẫu thường gặp khi làm Đồ án &amp; Thiết kế kết cấu:</div>
+                <div class="flex flex-wrap gap-2">
+                  <button onclick="askTCVNCopilot('Chiều dày lớp bê tông bảo vệ cốt thép theo TCVN 5574:2018?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                    Lớp bê tông bảo vệ c₀ (TCVN 5574)
+                  </button>
+                  <button onclick="askTCVNCopilot('Hoạt tải sàn nhà ở và văn phòng theo TCVN 2737:2023 mới nhất?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                    Hoạt tải sàn (TCVN 2737:2023)
+                  </button>
+                  <button onclick="askTCVNCopilot('Quy định chiều rộng cầu thang và hành lang thoát nạn PCCC theo QCVN 06?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                    Lối thoát nạn PCCC (QCVN 06)
+                  </button>
+                  <button onclick="askTCVNCopilot('Độ lún giới hạn của móng nhà khung BTCT theo TCVN 9362:2012?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                    Độ lún giới hạn móng (TCVN 9362)
+                  </button>
+                </div>
+
+                <div class="flex gap-2 pt-1">
+                  <input
+                    id="tcvn-query-input"
+                    type="text"
+                    placeholder="Nhập câu hỏi TCVN (VD: Bề rộng vết nứt giới hạn acrc là bao nhiêu?)..."
+                    onkeydown="if(event.key==='Enter') askTCVNCopilot()"
+                    class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400"
+                  />
+                  <button onclick="askTCVNCopilot()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 transition">
+                    Tra cứu AI
+                  </button>
+                </div>
+              </div>
+
+              <div id="tcvn-chat-output" class="flex-1 min-h-[220px]"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- PHÂN HỆ 4: GIÁM SÁT AN TOÀN LAO ĐỘNG & NHẬT KÝ CÔNG TRƯỜNG -->
+        <!-- ================================================================== -->
+        <section id="panel-siteguard" class="tab-panel hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold text-white">Giám sát An toàn Lao động &amp; Nhật ký Công trường từ Ảnh Thực Tế</h2>
+              <p class="text-sm text-slate-400">Tải ảnh chụp thực tế tại công trường để AI Vision tự động khoanh ô màu các vùng nguy hiểm kèm lý do chi tiết và lập Nhật ký thi công cuối ngày.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs cursor-pointer shadow-lg shadow-emerald-500/20 transition">
+                📷 Tải Ảnh Công Trường Thực Tế Lên
+                <input id="site-file-input" type="file" accept="image/*" onchange="handleSiteImageUpload(event)" class="hidden" />
+              </label>
+              <button
+                id="btn-reanalyze-site"
+                type="button"
+                onclick="analyzeUploadedSiteImage()"
+                class="hidden px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow transition"
+              >
+                🔍 Quét lại An toàn AI
+              </button>
+            </div>
+          </div>
+
+          <!-- Khung Hỏi đáp tiếp với AI về ảnh công trường & kết quả phân tích -->
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-sky-500/30 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-bold text-sky-400">💬 Hỏi đáp tiếp với Kỹ sư An toàn AI (Theo đúng bức ảnh vừa phân tích)</span>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="askSiteFollowUp('Viết biên bản nhắc nhở an toàn lao động ngắn gọn gửi tổ đội trưởng dựa trên các lỗi trong ảnh')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Viết biên bản nhắc nhở</button>
+                <button type="button" onclick="askSiteFollowUp('Cần trang bị bổ sung những đồ bảo hộ (PPE) và thiết bị an toàn nào ngay cho công nhân trong ảnh?')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Đồ bảo hộ cần bổ sung?</button>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <input
+                id="site-followup-input"
+                type="text"
+                placeholder="Đặt câu hỏi tiếp cho AI về bức ảnh công trường hoặc kết quả phân tích phía dưới..."
+                onkeydown="if(event.key==='Enter') askSiteFollowUp()"
+                class="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-400"
+              />
+              <button
+                type="button"
+                onclick="askSiteFollowUp()"
+                class="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs shrink-0 transition"
+              >
+                Gửi câu hỏi
+              </button>
+            </div>
+            <div id="site-followup-thread" class="hidden space-y-2.5 max-h-72 overflow-y-auto pt-1"></div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Khung ảnh thực tế + lớp phủ ô màu khoanh vùng nguy hiểm -->
+            <div class="lg:col-span-7 p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">👁️ Khung Quét An Toàn AI (Khoanh Vùng Nguy Hiểm &amp; Lý Do)</span>
+                <span id="site-risk-badge" class="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-semibold">Chờ tải ảnh</span>
+              </div>
+
+              <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 min-h-[300px] flex items-center justify-center p-2">
+                <div id="site-empty-state" class="p-8 text-center space-y-2">
+                  <div class="text-4xl">🦺</div>
+                  <div class="text-sm font-semibold text-slate-200">Chưa có ảnh công trường thực tế</div>
+                  <p class="text-xs text-slate-400 max-w-sm mx-auto">Bấm nút <strong>"📷 Tải Ảnh Công Trường Thực Tế Lên"</strong> để AI tự động khoanh ô màu các vùng mất an toàn kèm lý do nguy hiểm ngay trên ảnh.</p>
+                </div>
+
+                <div id="site-image-stage" class="hidden relative inline-block max-w-full">
+                  <img id="site-preview-img" src="" alt="Ảnh công trường thực tế" class="block max-w-full max-h-[440px] w-auto h-auto rounded-lg" />
+                  <div id="site-boxes-overlay" class="absolute inset-0 overflow-hidden rounded-lg"></div>
+                </div>
+              </div>
+
+              <!-- Chú thích màu mức độ nguy hiểm -->
+              <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 px-1">
+                <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-rose-500/80 border border-rose-400"></span> Nghiêm trọng (Đỏ)</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-orange-500/80 border border-orange-400"></span> Nguy cơ Cao (Cam)</span>
+                <span class="inline-flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-400/80 border border-amber-300"></span> Cảnh báo Trung bình (Vàng)</span>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 pt-1">
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <span class="text-xs text-slate-400">Điểm An toàn Công trường:</span>
+                  <span id="site-score" class="text-lg font-extrabold text-amber-400">--</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <span class="text-xs text-slate-400">Tuân thủ Trang bị Bảo hộ:</span>
+                  <span id="site-workers" class="text-sm font-bold text-emerald-400">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Danh sách vi phạm + Nhật ký -->
+            <div class="lg:col-span-5 space-y-4">
+              <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                <h3 class="font-bold text-sm text-white">🚨 Chi tiết Các Vùng Nguy Hiểm Phát Hiện</h3>
+                <div id="site-violations-list" class="space-y-2.5"></div>
+              </div>
+
+              <div id="site-diary-box" class="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- PHÂN HỆ 5: BÁC SĨ CÔNG TRÌNH - CHẨN ĐOÁN VẾT NỨT & HƯ HỎNG -->
+        <!-- ================================================================== -->
+        <section id="panel-crackdoctor" class="tab-panel hidden space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 class="text-xl font-bold text-white">Bác sĩ Công trình – Chẩn đoán Bệnh học &amp; Vết nứt Kết cấu từ Ảnh Thực Tế</h2>
+              <p class="text-sm text-slate-400">Tải trực tiếp ảnh chụp vết nứt, thấm dột, bong tróc bê tông để AI Vision chẩn đoán nguyên nhân, đối chiếu TCVN 5574:2018 và lập phác đồ sửa chữa riêng cho bức ảnh đó.</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <label class="px-4 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs cursor-pointer shadow-lg shadow-rose-500/20 transition">
+                📷 Tải Ảnh Vết Nứt / Hư Hỏng Lên
+                <input id="crack-file-input" type="file" accept="image/*" onchange="handleCrackImageUpload(event)" class="hidden" />
+              </label>
+              <button
+                id="btn-reanalyze-crack"
+                type="button"
+                onclick="analyzeUploadedCrackImage()"
+                class="hidden px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow transition"
+              >
+                🔬 Phân tích lại bằng AI
+              </button>
+            </div>
+          </div>
+
+          <!-- Khung Hỏi đáp tiếp với Bác sĩ Công trình AI về ảnh vết nứt & kết quả chẩn đoán -->
+          <div class="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-bold text-amber-400">💬 Hỏi đáp tiếp với Bác sĩ Công trình AI (Theo đúng bức ảnh &amp; phác đồ vừa chẩn đoán)</span>
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="askCrackFollowUp('Vết nứt này có nguy cơ gây mất an toàn hoặc sập đổ ngay không? Có cần di tản hay chống đỡ khẩn cấp không?')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Có nguy hiểm ngay không?</button>
+                <button type="button" onclick="askCrackFollowUp('Có phương án xử lý nào tiết kiệm chi phí hơn mà vẫn đảm bảo kỹ thuật cho vết nứt này không?')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Phương án tiết kiệm hơn?</button>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <input
+                id="crack-followup-input"
+                type="text"
+                placeholder="Đặt câu hỏi tiếp cho Bác sĩ Công trình AI sau khi đọc kết quả phân tích..."
+                onkeydown="if(event.key==='Enter') askCrackFollowUp()"
+                class="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400"
+              />
+              <button
+                type="button"
+                onclick="askCrackFollowUp()"
+                class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 transition"
+              >
+                Gửi câu hỏi
+              </button>
+            </div>
+            <div id="crack-followup-thread" class="hidden space-y-2.5 max-h-72 overflow-y-auto pt-1"></div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Khung ảnh thực tế & thông số chẩn đoán -->
+            <div class="lg:col-span-6 p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+              <h3 class="font-bold text-sm text-rose-400 uppercase tracking-wider">🔬 Ảnh Khảo Sát Thực Tế</h3>
+              <div class="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 min-h-[260px] flex items-center justify-center relative">
+                <div id="crack-empty-state" class="p-8 text-center space-y-2">
+                  <div class="text-4xl">📷</div>
+                  <div class="text-sm font-semibold text-slate-200">Chưa có ảnh khảo sát công trình</div>
+                  <p class="text-xs text-slate-400 max-w-xs mx-auto">Bấm nút <strong>"📷 Tải Ảnh Vết Nứt / Hư Hỏng Lên"</strong> ở góc phải phía trên để Bác sĩ Công trình AI phân tích trực tiếp ảnh của bạn.</p>
+                </div>
+                <img id="crack-preview-img" src="" alt="Ảnh vết nứt công trình" class="hidden w-full h-auto max-h-[340px] object-contain" />
+              </div>
+
+              <div class="space-y-2 text-sm">
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                  <div class="text-xs text-slate-400">Cấu kiện &amp; Vị trí phát hiện trong ảnh:</div>
+                  <div id="crack-component" class="font-semibold text-slate-300 mt-0.5">Chờ tải ảnh lên...</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                  <div class="text-xs text-slate-400">Phân loại cơ học vết nứt / Dạng hư hỏng:</div>
+                  <div id="crack-type" class="font-semibold text-amber-300 mt-0.5">Chờ tải ảnh lên...</div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                    <div class="text-xs text-slate-400">Bề rộng ước tính (a<sub>crc</sub>):</div>
+                    <div id="crack-width" class="font-semibold text-sky-300 text-xs mt-0.5">--</div>
+                  </div>
+                  <div class="p-3 rounded-xl bg-slate-950 border border-slate-800">
+                    <div class="text-xs text-slate-400">Đánh giá Mức độ An toàn:</div>
+                    <div id="crack-severity" class="font-bold text-rose-400 text-xs mt-0.5">--</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Nguyên nhân & Phác đồ sửa chữa -->
+            <div class="lg:col-span-6 space-y-4">
+              <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                <h3 class="font-bold text-sm text-amber-400">🧠 Chẩn đoán Nguyên nhân Cơ học Kết cấu</h3>
+                <p id="crack-cause" class="text-sm text-slate-200 leading-relaxed"></p>
+
+                <h3 class="font-bold text-sm text-emerald-400 pt-2">🛠️ Phác đồ Xử lý &amp; Gia cường Chuẩn Kỹ thuật</h3>
+                <ul id="crack-steps" class="space-y-2"></ul>
+              </div>
+
+              <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                <h3 class="font-bold text-sm text-white">🧪 Định mức Hóa chất &amp; Vật tư Sửa chữa Đề xuất</h3>
+                <table class="w-full text-xs">
+                  <thead>
+                    <tr class="text-slate-400 border-b border-slate-800">
+                      <th class="text-left pb-2">Hạng mục vật tư / Hóa chất</th>
+                      <th class="text-center pb-2">Khối lượng</th>
+                      <th class="text-right pb-2">Chi phí tạm tính</th>
+                    </tr>
+                  </thead>
+                  <tbody id="crack-materials"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================================================================== -->
+        <!-- TRANG RIÊNG: KẾT NỐI AI & CÀI ĐẶT API KEY GEMINI -->
+        <!-- ================================================================== -->
+        <section id="panel-aisettings" class="tab-panel hidden space-y-6">
+          <div class="max-w-2xl mx-auto space-y-5">
+            <div>
+              <h2 class="text-xl font-bold text-white">🔑 Kết nối Trí tuệ Nhân tạo (AI) &amp; API Key Gemini</h2>
+              <p class="text-sm text-slate-400">Chọn chế độ hoạt động hoặc nhập mã API Key từ Google AI Studio. Nếu nhập đúng, hệ thống sẽ tự động đưa bạn về trang chính ngay lập tức.</p>
+            </div>
+
+            <!-- Chọn chế độ AI -->
+            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-400">1. Chọn Chế độ Vận hành AI</div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button id="btn-mode-demo" type="button" onclick="toggleAIMode('demo')" class="p-3.5 rounded-xl text-left border bg-amber-500/15 border-amber-500/50 text-amber-300 transition">
+                  <div class="font-bold text-sm">⚡ Mô phỏng Thông minh</div>
+                  <div class="text-xs text-slate-300 mt-0.5">Chạy nhanh không cần API Key (dùng cho Dự toán &amp; Tra cứu TCVN cơ bản)</div>
+                </button>
+                <button id="btn-mode-gemini" type="button" onclick="toggleAIMode('gemini')" class="p-3.5 rounded-xl text-left border bg-slate-950 border-slate-800 text-slate-300 hover:border-emerald-500/40 transition">
+                  <div class="font-bold text-sm">✨ Kết nối AI Gemini Thật</div>
+                  <div class="text-xs text-slate-400 mt-0.5">Bắt buộc cho quét ảnh công trường, chẩn đoán vết nứt &amp; hỏi đáp chuyên sâu</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Khung nhập API Key (Chống zoom iOS) -->
+            <div class="p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/30 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-xs font-bold uppercase tracking-wider text-emerald-400">2. Nhập mã Gemini API Key của bạn</div>
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-xs font-semibold text-sky-400 hover:text-sky-300 underline"
+                >
+                  🚀 Lấy Key miễn phí tại Google AI Studio ↗
+                </a>
+              </div>
+
+              <div class="space-y-3">
+                <div class="relative flex items-center">
+                  <input
+                    id="gemini-api-key-input"
+                    type="password"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Dán mã Gemini API Key (AIza...)"
+                    oninput="saveApiKey(this.value)"
+                    onkeydown="if(event.key==='Enter') connectAndVerifyGeminiKey(null, true)"
+                    class="w-full pl-3.5 pr-11 py-3 rounded-xl bg-slate-950 border border-emerald-500/40 text-base sm:text-sm text-white focus:outline-none focus:border-emerald-400"
+                  />
+                  <button
+                    type="button"
+                    id="btn-toggle-key-vis"
+                    onclick="toggleKeyVisibility()"
+                    title="Hiện / Ẩn API Key"
+                    class="absolute right-3 text-slate-400 hover:text-slate-200 text-base"
+                  >
+                    👁️
+                  </button>
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onclick="pasteKeyIntoSettings()"
+                    class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition"
+                  >
+                    📋 Dán nhanh
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-verify-key"
+                    onclick="connectAndVerifyGeminiKey(null, true)"
+                    class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs shadow-lg shadow-emerald-500/20 transition"
+                  >
+                    ⚡ Lưu &amp; Kết nối ngay
+                  </button>
+                  <button
+                    type="button"
+                    onclick="unlinkGeminiAccount()"
+                    class="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 font-semibold text-xs transition"
+                  >
+                    Hủy liên kết
+                  </button>
+                </div>
+
+                <!-- Khu vực báo lỗi / báo thành công ngay tại trang nhập API -->
+                <div id="api-key-feedback" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+              </div>
+
+              <!-- Chọn Model ngay trên trang cài đặt (hiện khi đã kết nối) -->
+              <div id="settings-model-wrap" class="hidden pt-3 border-t border-slate-800 space-y-2">
+                <label class="block text-xs font-semibold text-slate-300">Chọn Model Gemini đang dùng:</label>
+                <select
+                  id="settings-model-select"
+                  onchange="selectGeminiModel(this.value)"
+                  class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-base sm:text-sm text-emerald-300 focus:outline-none"
+                ></select>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- CHÂN TRANG (FOOTER) CHUẨN KHOA XÂY DỰNG • ĐẠI HỌC DUY TÂN (DTU) -->
+    <footer class="mt-10 border-t border-slate-800/90 bg-slate-950/90 py-6 px-6 text-center space-y-1.5">
+      <div class="text-xs sm:text-sm font-medium text-slate-300">
+        © 2026 Kiến Tạo Xây Dựng Số AI • Nền tảng Dự toán Vật liệu Xanh, Giám sát An toàn, Chẩn đoán Kết cấu &amp; Tra cứu Tiêu chuẩn Xây dựng Thông minh
+      </div>
+      <div class="text-xs sm:text-sm font-bold dtu-gold-text tracking-wide">
+        Khoa Xây Dựng • Đại Học Duy Tân (DTU)
+      </div>
+    </footer>
+  </div>
+
+  <!-- MODAL CHỌN TRANG & XUẤT FILE PDF THẬT (KHỔ A4 CHUẨN KỸ THUẬT) -->
+  <div id="pdf-export-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#65121b] to-[#2d090e] border-b border-amber-500/30 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-[#e2b877]">Khoa Xây Dựng • Đại Học Duy Tân (DTU)</div>
+          <h3 class="text-base font-extrabold text-white">📄 Xuất Hồ sơ Kỹ thuật Định dạng PDF</h3>
+        </div>
+        <button type="button" onclick="closePdfExportModal()" class="text-slate-300 hover:text-white text-lg px-2">✕</button>
+      </div>
+
+      <div class="p-5 sm:p-6 space-y-4 text-sm text-slate-200">
+        <div>
+          <label for="pdf-project-name" class="block text-xs font-semibold text-slate-300 mb-1.5">Tên công trình / Tiêu đề hồ sơ PDF:</label>
+          <input
+            id="pdf-project-name"
+            type="text"
+            value="Hồ sơ Kỹ thuật Công trình - Kiến Tạo Xây Dựng Số AI (DTU)"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400"
+          />
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400">Chọn các trang / mục muốn xuất vào file PDF:</span>
+            <div class="flex gap-2 text-xs">
+              <button type="button" onclick="toggleAllPdfSections(true)" class="text-sky-400 hover:underline font-semibold">Chọn tất cả</button>
+              <span class="text-slate-600">|</span>
+              <button type="button" onclick="toggleAllPdfSections(false)" class="text-slate-400 hover:underline">Bỏ chọn</button>
+            </div>
+          </div>
+
+          <div class="space-y-2 bg-slate-950/90 p-3.5 rounded-2xl border border-slate-800">
+            <label class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-900 cursor-pointer">
+              <input type="checkbox" value="estimator" checked class="pdf-section-chk w-4 h-4 accent-amber-500 rounded shrink-0" />
+              <div class="text-xs sm:text-sm"><strong>1. Dự toán Chi phí &amp; Vật liệu Xanh</strong> <span class="text-slate-400">(BOQ, CO₂, tư vấn AI)</span></div>
+            </label>
+
+            <label class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-900 cursor-pointer">
+              <input type="checkbox" value="tcvn" checked class="pdf-section-chk w-4 h-4 accent-amber-500 rounded shrink-0" />
+              <div class="text-xs sm:text-sm"><strong>2. Kiểm tra Kết cấu &amp; Tra cứu TCVN</strong> <span class="text-slate-400">(TCVN 5574:2018 &amp; hỏi đáp)</span></div>
+            </label>
+
+            <label class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-900 cursor-pointer">
+              <input type="checkbox" value="siteguard" checked class="pdf-section-chk w-4 h-4 accent-amber-500 rounded shrink-0" />
+              <div class="text-xs sm:text-sm"><strong>3. Giám sát An toàn &amp; Nhật ký Công trường</strong> <span class="text-slate-400">(Ảnh thực tế, lỗi &amp; nhật ký)</span></div>
+            </label>
+
+            <label class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-900 cursor-pointer">
+              <input type="checkbox" value="crackdoctor" checked class="pdf-section-chk w-4 h-4 accent-amber-500 rounded shrink-0" />
+              <div class="text-xs sm:text-sm"><strong>4. Bác sĩ Công trình</strong> <span class="text-slate-400">(Ảnh vết nứt, chẩn đoán &amp; bảng vật tư)</span></div>
+            </label>
+
+            <label class="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-900 cursor-pointer">
+              <input type="checkbox" value="dashboard" checked class="pdf-section-chk w-4 h-4 accent-amber-500 rounded shrink-0" />
+              <div class="text-xs sm:text-sm"><strong>5. Tổng quan Dự án</strong> <span class="text-slate-400">(Bảng tổng hợp chỉ số toàn công trình)</span></div>
+            </label>
+          </div>
+        </div>
+
+        <div id="pdf-export-status" class="hidden text-xs font-semibold p-3 rounded-xl"></div>
+
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" onclick="closePdfExportModal()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition">
+            Đóng
+          </button>
+          <button
+            type="button"
+            id="btn-download-pdf-now"
+            onclick="generateAndDownloadPDF()"
+            class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-extrabold shadow-lg shadow-emerald-500/20 transition"
+          >
+            ⬇️ Tải xuống File PDF (.pdf)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LIÊN KẾT TÀI KHOẢN GOOGLE GEMINI (2 BƯỚC SIÊU NHANH) -->
+  <div id="gemini-link-modal" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-lg rounded-3xl bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#65121b] to-[#2d090e] border-b border-amber-500/30 flex items-center justify-between">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-[#e2b877]">Google AI Studio • Gemini API</div>
+          <h3 class="text-base font-extrabold text-white">🔗 Liên kết Tài khoản Google Gemini của bạn</h3>
+        </div>
+        <button onclick="closeGeminiLinkModal()" class="text-slate-300 hover:text-white text-lg px-2">✕</button>
+      </div>
+
+      <div class="p-6 space-y-4 text-sm text-slate-300">
+        <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+          <div class="font-bold text-sky-400 text-xs uppercase">Bước 1: Mở Tài khoản Google Gemini &amp; Sao chép khóa kết nối</div>
+          <p class="text-xs text-slate-400 leading-relaxed">
+            Bấm nút bên dưới để mở trang chính thức của Google AI Studio bằng tài khoản Gmail/Gemini của bạn, chọn <strong>Create API Key</strong> rồi bấm <strong>Copy</strong>.
+          </p>
+          <a
+            href="https://aistudio.google.com/app/apikey"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs transition"
+          >
+            🚀 Mở Tài khoản Google AI Studio (Lấy Key Miễn Phí) ↗
+          </a>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+          <div class="font-bold text-emerald-400 text-xs uppercase">Bước 2: Dán khóa vào đây để liên kết tức thì (&lt; 1 giây)</div>
+          <div class="flex gap-2">
+            <input
+              id="modal-gemini-key-input"
+              type="text"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="Dán mã khóa AIza... tại đây"
+              onkeydown="if(event.key==='Enter') applyModalGeminiKey()"
+              class="flex-1 px-3 py-2 rounded-xl bg-slate-900 border border-emerald-500/40 text-xs text-white focus:outline-none focus:border-emerald-400"
+            />
+            <button
+              type="button"
+              onclick="pasteKeyFromClipboard()"
+              class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 shrink-0"
+            >
+              📋 Dán nhanh
+            </button>
+          </div>
+          <div id="modal-key-status" class="text-xs text-slate-400"></div>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <button
+            type="button"
+            onclick="unlinkGeminiAccount()"
+            class="px-3 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-semibold transition"
+          >
+            Hủy liên kết
+          </button>
+          <div class="flex gap-2">
+            <button
+              type="button"
+              onclick="closeGeminiLinkModal()"
+              class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
+            >
+              Đóng
+            </button>
+            <button
+              type="button"
+              id="btn-modal-connect"
+              onclick="applyModalGeminiKey()"
+              class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold shadow transition"
+            >
+              ⚡ Liên kết Tài khoản ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
