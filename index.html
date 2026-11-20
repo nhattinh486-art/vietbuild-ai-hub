@@ -197,6 +197,45 @@
       font-weight: 600;
     }
 
+    /* Tab con Mục 2: Nút đang chọn nền đỏ đô chữ trắng rõ nét, dịu mắt */
+    .tcvn-subtab-btn {
+      background-color: transparent !important;
+      color: #475569 !important;
+      border: 1px solid transparent !important;
+    }
+    .tcvn-subtab-btn:hover {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+    }
+    .tcvn-subtab-btn.tcvn-subtab-active {
+      background-color: #8b1e2b !important;
+      color: #ffffff !important;
+      border-color: #731621 !important;
+      box-shadow: 0 2px 6px rgba(139, 30, 43, 0.22);
+    }
+    .tcvn-subtab-btn.tcvn-subtab-active * {
+      color: #ffffff !important;
+    }
+
+    /* Hộp kết quả & Góc chú giải ký hiệu kỹ thuật dịu mắt (Light Studio) */
+    .bg-slate-950\/70,
+    .tech-surface {
+      background-color: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #0f172a !important;
+    }
+    .glossary-box {
+      background-color: #f8fafc !important;
+      border: 1px solid #e2e8f0 !important;
+      border-left: 3px solid #64748b !important;
+      color: #334155 !important;
+    }
+    .fix-guide-box {
+      background-color: #fffbeb !important;
+      border: 1px solid #fde68a !important;
+      color: #78350f !important;
+    }
+
     /* Giữ Tooltip lý do nguy hiểm trên ảnh công trường luôn nền tối chữ sáng để dễ đọc đè lên ảnh */
     #site-boxes-overlay .bg-slate-950\/95 {
       background-color: rgba(15, 23, 42, 0.94) !important;
@@ -698,7 +737,7 @@
           <div class="flex flex-wrap items-center justify-between gap-4">
             <div>
               <h2 class="text-xl font-bold text-white">Dự toán Chi phí, Kỹ thuật Công trình &amp; Bóc tách Khối lượng (BOQ)</h2>
-              <p class="text-sm text-slate-400">Tính hệ số diện tích xây dựng, tải trọng sơ bộ, tiến độ nhân công, bóc tách khối lượng 10 hạng mục chuẩn kỹ thuật và hiệu quả Vật liệu Xanh.</p>
+              <p class="text-sm text-slate-400">Tính hệ số diện tích xây dựng, tải trọng sơ bộ, tiến độ nhân công, bóc tách khối lượng 12 hạng mục chuẩn kỹ thuật và hiệu quả Vật liệu Xanh.</p>
             </div>
             <button onclick="runEstimatorAIAdvice()" class="btn-primary-dtu inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold text-xs shadow-sm transition">
               <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
@@ -706,6 +745,20 @@
             </button>
           </div>
 
+          <!-- THANH CHUYỂN 2 TRANG CON TRONG MỤC 1 -->
+          <div class="flex flex-wrap gap-2 p-1.5 rounded-xl bg-slate-900 border border-slate-800">
+            <button type="button" onclick="switchEstimatorSubTab('overview')" data-est-subtab="overview" class="est-subtab-btn tcvn-subtab-btn tcvn-subtab-active px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5">
+              <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+              <span>1. Thông số Công trình &amp; Tổng hợp Chi phí</span>
+            </button>
+            <button type="button" onclick="switchEstimatorSubTab('boq')" data-est-subtab="boq" class="est-subtab-btn tcvn-subtab-btn px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5">
+              <i data-lucide="table-2" class="w-3.5 h-3.5"></i>
+              <span>2. Bảng Bóc tách Khối lượng (BOQ – 12 Hạng mục)</span>
+            </button>
+          </div>
+
+          <!-- TRANG CON 1.1: THÔNG SỐ CÔNG TRÌNH, KPI, BIỂU ĐỒ & TƯ VẤN AI -->
+          <div id="est-sub-overview" class="est-sub-panel space-y-6">
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <!-- Form nhập thông số kỹ thuật công trình mở rộng -->
             <div class="lg:col-span-4 ui-card p-5 space-y-3.5">
@@ -878,121 +931,386 @@
               </div>
             </div>
           </div>
+          </div>
 
-          <!-- BẢNG BÓC TÁCH KHỐI LƯỢNG CHI TIẾT (BOQ - 10 HẠNG MỤC CHUẨN KỸ THUẬT) -->
-          <div class="ui-card p-5 space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
-              <div>
-                <h3 class="font-bold text-base text-white">Bảng Bóc Tách Khối Lượng &amp; Dự Toán Chi Tiết (BOQ – 12 Hạng Mục: Vật liệu, Nhân công &amp; Máy thi công)</h3>
-                <p class="text-xs text-slate-400">Tham chiếu cấu trúc định mức Thông tư 12/2021/TT-BXD — Tự động tính lại theo diện tích, chiều cao tầng H<sub>t</sub>, tầng hầm và loại vật liệu.</p>
+          <!-- TRANG CON 1.2: BẢNG BÓC TÁCH KHỐI LƯỢNG CHI TIẾT (BOQ - 12 HẠNG MỤC) -->
+          <div id="est-sub-boq" class="est-sub-panel hidden space-y-4">
+            <div class="ui-card p-5 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div>
+                  <h3 class="font-bold text-base text-white">Bảng Bóc Tách Khối Lượng &amp; Dự Toán Chi Tiết (BOQ – 12 Hạng Mục: Vật liệu, Nhân công &amp; Máy thi công)</h3>
+                  <p class="text-xs text-slate-400">Tham chiếu cấu trúc định mức Thông tư 12/2021/TT-BXD — Tự động tính lại theo diện tích, chiều cao tầng H<sub>t</sub>, tầng hầm và loại vật liệu.</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="switchEstimatorSubTab('overview')" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-semibold transition">
+                    ← Chỉnh thông số
+                  </button>
+                  <span class="font-mono-tech text-[11px] px-2.5 py-1.5 rounded bg-slate-800 text-slate-300">Đơn vị tính: VNĐ</span>
+                </div>
               </div>
-              <span class="font-mono-tech text-[11px] px-2.5 py-1 rounded bg-slate-800 text-slate-300">Đơn vị tính: VNĐ</span>
-            </div>
 
-            <div class="overflow-x-auto">
-              <table class="w-full text-xs sm:text-sm text-left tabular-nums">
-                <thead>
-                  <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase">
-                    <th class="py-2.5 pr-3 font-semibold">Mã CT</th>
-                    <th class="py-2.5 pr-3 font-semibold">Hạng mục Công tác &amp; Quy cách Kỹ thuật</th>
-                    <th class="py-2.5 px-2 text-center font-semibold">ĐVT</th>
-                    <th class="py-2.5 px-2 text-right font-semibold">Khối lượng</th>
-                    <th class="py-2.5 px-2 text-right font-semibold hidden sm:table-cell">Đơn giá (đ)</th>
-                    <th class="py-2.5 pl-2 text-right font-semibold">Thành tiền (đ)</th>
-                  </tr>
-                </thead>
-                <tbody id="boq-detail-body" class="divide-y divide-slate-800"></tbody>
-              </table>
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs sm:text-sm text-left tabular-nums">
+                  <thead>
+                    <tr class="border-b border-slate-800 text-slate-400 text-xs uppercase">
+                      <th class="py-2.5 pr-3 font-semibold">Mã CT</th>
+                      <th class="py-2.5 pr-3 font-semibold">Hạng mục Công tác &amp; Quy cách Kỹ thuật</th>
+                      <th class="py-2.5 px-2 text-center font-semibold">ĐVT</th>
+                      <th class="py-2.5 px-2 text-right font-semibold">Khối lượng</th>
+                      <th class="py-2.5 px-2 text-right font-semibold hidden sm:table-cell">Đơn giá (đ)</th>
+                      <th class="py-2.5 pl-2 text-right font-semibold">Thành tiền (đ)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="boq-detail-body" class="divide-y divide-slate-800"></tbody>
+                </table>
+              </div>
             </div>
           </div>
         </section>
 
         <!-- ================================================================== -->
-        <!-- PHÂN HỆ 3: TRỢ LÝ TRA CỨU TCVN & KIỂM TRA KẾT CẤU NHANH -->
+        <!-- PHÂN HỆ 2: TRỢ LÝ TRA CỨU TCVN & BỘ CÔNG CỤ KẾT CẤU TOÀN DIỆN -->
         <!-- ================================================================== -->
         <section id="panel-tcvn" class="tab-panel hidden space-y-6">
-          <div>
-            <h2 class="text-xl font-bold text-white">Trợ lý Tra cứu Tiêu chuẩn Xây dựng (TCVN) &amp; Kiểm tra Kết cấu</h2>
-            <p class="text-sm text-slate-400">Tra cứu chính xác điều khoản TCVN 5574:2018, TCVN 2737:2023, QCVN 06:2022/BXD và kiểm tra nhanh kích thước tiết diện dầm, sàn, lớp bê tông bảo vệ.</p>
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-bold text-white">Trợ lý Tiêu chuẩn Xây dựng (TCVN) &amp; Tính toán Kết cấu</h2>
+              <p class="text-sm text-slate-400">Bộ công cụ kỹ thuật theo TCVN 5574:2018, TCVN 2737:2023, TCVN 9362:2012, TCVN 9386:2012 &amp; QCVN 06:2022/BXD kết hợp AI tra cứu trích dẫn.</p>
+            </div>
+            <span class="font-mono-tech text-[11px] px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">Chuẩn Kỹ sư Kết cấu &amp; Đồ án</span>
           </div>
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Công cụ kiểm tra tiết diện -->
-            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="font-bold text-base text-sky-400">⚡ Kiểm tra Nhanh Tiết diện &amp; Bảo vệ Cốt thép (TCVN 5574:2018)</h3>
-                <span class="text-xs px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">Tự động kiểm tra</span>
+          <!-- THANH CHUYỂN 4 TAB CÔNG CỤ KỸ THUẬT -->
+          <div class="flex flex-wrap gap-2 p-1.5 rounded-xl bg-slate-900 border border-slate-800">
+            <button type="button" onclick="switchTcvnSubTab('beam')" data-tcvn-subtab="beam" class="tcvn-subtab-btn tcvn-subtab-active px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5">
+              <i data-lucide="ruler" class="w-3.5 h-3.5"></i>
+              <span>1. Tiết diện &amp; Cốt thép Dầm</span>
+            </button>
+            <button type="button" onclick="switchTcvnSubTab('anchor')" data-tcvn-subtab="anchor" class="tcvn-subtab-btn px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5 text-slate-300 hover:bg-slate-800">
+              <i data-lucide="link-2" class="w-3.5 h-3.5"></i>
+              <span>2. Neo &amp; Nối chồng Thép</span>
+            </button>
+            <button type="button" onclick="switchTcvnSubTab('loads')" data-tcvn-subtab="loads" class="tcvn-subtab-btn px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5 text-slate-300 hover:bg-slate-800">
+              <i data-lucide="wind" class="w-3.5 h-3.5"></i>
+              <span>3. Hoạt tải &amp; Gió (TCVN 2737:2023)</span>
+            </button>
+            <button type="button" onclick="switchTcvnSubTab('foundation')" data-tcvn-subtab="foundation" class="tcvn-subtab-btn px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5 text-slate-300 hover:bg-slate-800">
+              <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+              <span>4. Nền móng, Động đất &amp; PCCC</span>
+            </button>
+          </div>
+
+          <!-- SUB-TAB 1: TIẾT DIỆN, BẢO VỆ & TÍNH NHANH CỐT THÉP DẦM (TCVN 5574:2018) -->
+          <div id="tcvn-sub-beam" class="tcvn-sub-panel space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Trái: Kiểm tra nhanh tiết diện & lớp bảo vệ -->
+              <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 class="font-bold text-base text-sky-400">Kiểm tra Tiết diện &amp; Lớp bảo vệ (TCVN 5574:2018)</h3>
+                  <span class="text-xs px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">Tự động</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Nhịp dầm tính toán L (m)</label>
+                    <input id="chk-span" type="number" step="0.5" value="6.0" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Chiều cao dầm chọn h (mm)</label>
+                    <input id="chk-beam-h" type="number" step="50" value="500" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Chiều dày bản sàn h<sub>s</sub> (mm)</label>
+                    <input id="chk-slab-h" type="number" step="10" value="120" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Lớp bê tông bảo vệ c<sub>0</sub> (mm)</label>
+                    <input id="chk-cover" type="number" step="5" value="25" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Điều kiện môi trường làm việc của kết cấu</label>
+                  <select id="chk-env" onchange="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                    <option value="indoor">Trong nhà có mái che (Độ ẩm bình thường)</option>
+                    <option value="outdoor">Ngoài trời chịu mưa nắng trực tiếp</option>
+                    <option value="foundation">Trong đất / Đài móng (Có lớp bê tông lót)</option>
+                    <option value="marine">Môi trường biển / Xâm thực khí quyển mạnh</option>
+                  </select>
+                </div>
+
+                <div id="tcvn-check-result" class="pt-1"></div>
               </div>
 
-              <div class="grid grid-cols-2 gap-3">
+              <!-- Phải: Tính nhanh Cốt thép Dầm chữ nhật + Sơ đồ mặt cắt SVG động -->
+              <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 class="font-bold text-base text-emerald-400">Tính nhanh Cốt thép Dầm Chịu Uốn (TCVN 5574:2018)</h3>
+                  <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Sơ đồ SVG động</span>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Mô-men M (kN·m)</label>
+                    <input id="rc-moment" type="number" step="10" value="140" min="5" oninput="calcBeamRebar()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Bề rộng b (mm)</label>
+                    <input id="rc-b" type="number" step="50" value="250" min="150" oninput="calcBeamRebar()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Chiều cao h (mm)</label>
+                    <input id="rc-h" type="number" step="50" value="500" min="200" oninput="calcBeamRebar()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Cấp bền Bê tông</label>
+                    <select id="rc-concrete" onchange="calcBeamRebar()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                      <option value="B20">B20 (Rb = 11.5 MPa)</option>
+                      <option value="B22.5">B22.5 (Rb = 13.0 MPa)</option>
+                      <option value="B25" selected>B25 (Rb = 14.5 MPa)</option>
+                      <option value="B30">B30 (Rb = 17.0 MPa)</option>
+                      <option value="B35">B35 (Rb = 19.5 MPa)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Mác Cốt thép dọc</label>
+                    <select id="rc-steel" onchange="calcBeamRebar()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                      <option value="CB300-V">CB300-V (Rs = 260 MPa)</option>
+                      <option value="CB400-V" selected>CB400-V (Rs = 350 MPa)</option>
+                      <option value="CB500-V">CB500-V (Rs = 435 MPa)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Khoảng a (mm)</label>
+                    <input id="rc-a" type="number" step="5" value="40" min="25" max="100" oninput="calcBeamRebar()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                </div>
+
+                <div id="rc-beam-result" class="pt-1"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 2: TRA CỨU CHIỀU DÀI NEO & NỐI CHỒNG CỐT THÉP (TCVN 5574:2018) -->
+          <div id="tcvn-sub-anchor" class="tcvn-sub-panel hidden">
+            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-5">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
                 <div>
-                  <label class="block text-xs text-slate-300 mb-1">Nhịp dầm tính toán L (m)</label>
-                  <input id="chk-span" type="number" step="0.5" value="6.0" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  <h3 class="font-bold text-base text-sky-400">Tra cứu Chiều dài Neo (l<sub>an</sub>) &amp; Nối chồng (l<sub>lap</sub>) — TCVN 5574:2018 (Mục 10.3.3)</h3>
+                  <p class="text-xs text-slate-400 mt-0.5">Công cụ tra nhanh hằng ngày cho Kỹ sư công trường &amp; Sinh viên triển khai bản vẽ cốt thép.</p>
+                </div>
+                <span class="font-mono-tech text-xs px-2.5 py-1 rounded bg-sky-500/20 text-sky-300">l₀,an = (Rs·d)/(4·Rbond)</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Đường kính thép d (mm)</label>
+                  <select id="anc-dia" onchange="calcAnchorLap()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                    <option value="10">Ø10 mm</option>
+                    <option value="12">Ø12 mm</option>
+                    <option value="14">Ø14 mm</option>
+                    <option value="16">Ø16 mm</option>
+                    <option value="18" selected>Ø18 mm</option>
+                    <option value="20">Ø20 mm</option>
+                    <option value="22">Ø22 mm</option>
+                    <option value="25">Ø25 mm</option>
+                    <option value="28">Ø28 mm</option>
+                  </select>
                 </div>
                 <div>
-                  <label class="block text-xs text-slate-300 mb-1">Chiều cao dầm chọn h (mm)</label>
-                  <input id="chk-beam-h" type="number" step="50" value="500" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  <label class="block text-xs text-slate-300 mb-1">Cấp bền Bê tông</label>
+                  <select id="anc-concrete" onchange="calcAnchorLap()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                    <option value="B15">B15 (Rbt = 0.75 MPa)</option>
+                    <option value="B20">B20 (Rbt = 0.90 MPa)</option>
+                    <option value="B22.5">B22.5 (Rbt = 0.98 MPa)</option>
+                    <option value="B25" selected>B25 (Rbt = 1.05 MPa)</option>
+                    <option value="B30">B30 (Rbt = 1.15 MPa)</option>
+                    <option value="B35">B35 (Rbt = 1.30 MPa)</option>
+                  </select>
                 </div>
                 <div>
-                  <label class="block text-xs text-slate-300 mb-1">Chiều dày bản sàn h<sub>s</sub> (mm)</label>
-                  <input id="chk-slab-h" type="number" step="10" value="120" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  <label class="block text-xs text-slate-300 mb-1">Mác Cốt thép</label>
+                  <select id="anc-steel" onchange="calcAnchorLap()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                    <option value="CB240-T">CB240-T (Thép trơn)</option>
+                    <option value="CB300-V">CB300-V (Có gân)</option>
+                    <option value="CB400-V" selected>CB400-V (Có gân)</option>
+                    <option value="CB500-V">CB500-V (Có gân)</option>
+                  </select>
                 </div>
                 <div>
-                  <label class="block text-xs text-slate-300 mb-1">Lớp bê tông bảo vệ c<sub>0</sub> (mm)</label>
-                  <input id="chk-cover" type="number" step="5" value="25" oninput="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  <label class="block text-xs text-slate-300 mb-1">Trạng thái chịu lực</label>
+                  <select id="anc-stress" onchange="calcAnchorLap()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                    <option value="tension" selected>Vùng chịu Kéo (α = 1.0)</option>
+                    <option value="compression">Vùng chịu Nén (α = 0.75)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Tỷ lệ nối trong 1 mặt cắt</label>
+                  <select id="anc-ratio" onchange="calcAnchorLap()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                    <option value="50" selected>≤ 50% số thanh (Khuyên dùng)</option>
+                    <option value="100">100% số thanh (Tăng α = 2.0)</option>
+                  </select>
                 </div>
               </div>
 
-              <div>
-                <label class="block text-xs text-slate-300 mb-1">Điều kiện môi trường làm việc của kết cấu</label>
-                <select id="chk-env" onchange="checkStructureTCVN()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
-                  <option value="indoor">Trong nhà có mái che (Độ ẩm bình thường)</option>
-                  <option value="outdoor">Ngoài trời chịu mưa nắng trực tiếp</option>
-                  <option value="foundation">Trong đất / Đài móng (Có lớp bê tông lót)</option>
-                  <option value="marine">Môi trường biển / Xâm thực khí quyển mạnh</option>
-                </select>
+              <div id="anc-lap-result"></div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 3: TẢI TRỌNG & TÁC ĐỘNG CHUẨN MỚI TCVN 2737:2023 -->
+          <div id="tcvn-sub-loads" class="tcvn-sub-panel hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Trái: Tra hoạt tải sàn -->
+              <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 class="font-bold text-base text-sky-400">Tra Hoạt tải Sàn &amp; Hệ số Độ tin cậy (TCVN 2737:2023)</h3>
+                  <span class="text-xs px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">Bảng 4</span>
+                </div>
+                <div>
+                  <label class="block text-xs text-slate-300 mb-1">Chọn công năng phòng / khu vực sử dụng</label>
+                  <select id="load-room-type" onchange="calcLoads2737()" class="w-full px-3 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                    <option value="residential">Phòng ngủ, phòng khách, căn hộ chung cư</option>
+                    <option value="office">Văn phòng làm việc, phòng kỹ thuật, phòng học</option>
+                    <option value="corridor_res">Hành lang, cầu thang nhà ở &amp; văn phòng</option>
+                    <option value="balcony">Ban công, lô gia (dải rộng 0.8m sát mép)</option>
+                    <option value="hall">Hội trường, trung tâm thương mại, sảnh đông người</option>
+                    <option value="parking">Bãi đỗ xe ô tô con (tải trọng ≤ 2.5 tấn)</option>
+                    <option value="roof_use">Sàn mái có sử dụng (sân thượng, cafe)</option>
+                    <option value="roof_no">Sàn mái không sử dụng (chỉ bảo trì)</option>
+                  </select>
+                </div>
+                <div id="load-live-result"></div>
               </div>
 
-              <div id="tcvn-check-result" class="pt-2"></div>
+              <!-- Phải: Tính nhanh Áp lực Gió TCVN 2737:2023 -->
+              <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 class="font-bold text-base text-emerald-400">Tính nhanh Tải trọng Gió (TCVN 2737:2023)</h3>
+                  <span class="text-xs px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Mục 10.2</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Vùng áp lực gió</label>
+                    <select id="wind-zone" onchange="calcLoads2737()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                      <option value="I">Vùng I (0.65 kN/m²)</option>
+                      <option value="II">Vùng II (0.95 kN/m² - HN/HCM)</option>
+                      <option value="III" selected>Vùng III (1.25 kN/m² - Đà Nẵng)</option>
+                      <option value="IV">Vùng IV (1.55 kN/m² - Ven biển bão)</option>
+                      <option value="V">Vùng V (1.85 kN/m² - Hải đảo)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Dạng địa hình</label>
+                    <select id="wind-terrain" onchange="calcLoads2737()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                      <option value="A">Dạng A (Trống trải / Ven biển)</option>
+                      <option value="B" selected>Dạng B (Đô thị vừa / Ngoại ô)</option>
+                      <option value="C">Dạng C (Nội đô nhiều nhà cao)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Chiều cao z<sub>e</sub> (m)</label>
+                    <input id="wind-height" type="number" step="1" value="15" min="3" max="150" oninput="calcLoads2737()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                </div>
+                <div id="load-wind-result"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 4: NỀN MÓNG (TCVN 9362), ĐỘNG ĐẤT (TCVN 9386) & PCCC (QCVN 06) -->
+          <div id="tcvn-sub-foundation" class="tcvn-sub-panel hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Trái: Tính sơ bộ Móng đơn -->
+              <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 class="font-bold text-base text-sky-400">Kiểm tra Sơ bộ Móng đơn (TCVN 9362:2012)</h3>
+                  <span class="text-xs px-2 py-0.5 rounded bg-sky-500/20 text-sky-300">Nền móng</span>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Lực dọc N (Tấn)</label>
+                    <input id="fnd-load" type="number" step="5" value="65" min="10" oninput="calcFoundationPccc()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Đất nền R<sub>0</sub> (kN/m²)</label>
+                    <input id="fnd-r0" type="number" step="10" value="180" min="60" oninput="calcFoundationPccc()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Chôn móng H<sub>m</sub> (m)</label>
+                    <input id="fnd-depth" type="number" step="0.2" value="1.6" min="0.8" max="4" oninput="calcFoundationPccc()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white" />
+                  </div>
+                </div>
+                <div id="fnd-calc-result"></div>
+              </div>
+
+              <!-- Phải: Tra Động đất & PCCC -->
+              <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                  <h3 class="font-bold text-base text-amber-400">Tra Động đất (TCVN 9386) &amp; PCCC (QCVN 06:2022)</h3>
+                  <span class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Pháp lý</span>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Tỉnh / Thành phố xây dựng</label>
+                    <select id="seis-city" onchange="calcFoundationPccc()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                      <option value="danang" selected>TP. Đà Nẵng (Quận Hải Châu / Sơn Trà)</option>
+                      <option value="hanoi">TP. Hà Nội (Nội thành)</option>
+                      <option value="hcm">TP. Hồ Chí Minh (Nội thành)</option>
+                      <option value="haiphong">TP. Hải Phòng</option>
+                      <option value="dienbien">Tỉnh Điện Biên (Vùng động đất mạnh)</option>
+                      <option value="nhatrang">TP. Nha Trang (Khánh Hòa)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs text-slate-300 mb-1">Quy mô chiều cao PCCC</label>
+                    <select id="pccc-height" onchange="calcFoundationPccc()" class="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white">
+                      <option value="low" selected>Nhà ở / Văn phòng ≤ 5 tầng (H ≤ 15m)</option>
+                      <option value="mid">Công trình 6–9 tầng (15m &lt; H ≤ 28m)</option>
+                      <option value="high">Nhà cao tầng ≥ 10 tầng (H &gt; 28m)</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="seis-pccc-result"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- KHUNG HỎI ĐÁP TRÍCH DẪN AI TCVN/QCVN (LUÔN SẴN SÀNG BÊN DƯỚI) -->
+          <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <h3 class="font-bold text-base text-amber-400">Hỏi đáp Trích dẫn Tiêu chuẩn Xây dựng Việt Nam cùng AI</h3>
+              <span class="text-xs text-slate-400">TCVN 5574:2018 • TCVN 2737:2023 • QCVN 06:2022 • TCVN 9362:2012</span>
             </div>
 
-            <!-- Hỏi đáp trích dẫn TCVN -->
-            <div class="p-5 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between space-y-4">
-              <div class="space-y-3">
-                <h3 class="font-bold text-base text-amber-400 border-b border-slate-800 pb-3">📚 Hỏi đáp Trích dẫn Tiêu chuẩn Xây dựng Việt Nam</h3>
-
-                <div class="text-xs text-slate-400">Câu hỏi mẫu thường gặp khi làm Đồ án &amp; Thiết kế kết cấu:</div>
-                <div class="flex flex-wrap gap-2">
-                  <button onclick="askTCVNCopilot('Chiều dày lớp bê tông bảo vệ cốt thép theo TCVN 5574:2018?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
-                    Lớp bê tông bảo vệ c₀ (TCVN 5574)
-                  </button>
-                  <button onclick="askTCVNCopilot('Hoạt tải sàn nhà ở và văn phòng theo TCVN 2737:2023 mới nhất?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
-                    Hoạt tải sàn (TCVN 2737:2023)
-                  </button>
-                  <button onclick="askTCVNCopilot('Quy định chiều rộng cầu thang và hành lang thoát nạn PCCC theo QCVN 06?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
-                    Lối thoát nạn PCCC (QCVN 06)
-                  </button>
-                  <button onclick="askTCVNCopilot('Độ lún giới hạn của móng nhà khung BTCT theo TCVN 9362:2012?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
-                    Độ lún giới hạn móng (TCVN 9362)
-                  </button>
-                </div>
-
-                <div class="flex gap-2 pt-1">
-                  <input
-                    id="tcvn-query-input"
-                    type="text"
-                    placeholder="Nhập câu hỏi TCVN (VD: Bề rộng vết nứt giới hạn acrc là bao nhiêu?)..."
-                    onkeydown="if(event.key==='Enter') askTCVNCopilot()"
-                    class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400"
-                  />
-                  <button onclick="askTCVNCopilot()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 transition">
-                    Tra cứu AI
-                  </button>
-                </div>
-              </div>
-
-              <div id="tcvn-chat-output" class="flex-1 min-h-[220px]"></div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="askTCVNCopilot('Chiều dày lớp bê tông bảo vệ cốt thép theo TCVN 5574:2018?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                Lớp bê tông bảo vệ c₀ (TCVN 5574)
+              </button>
+              <button onclick="askTCVNCopilot('Hoạt tải sàn nhà ở và văn phòng theo TCVN 2737:2023 mới nhất?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                Hoạt tải sàn (TCVN 2737:2023)
+              </button>
+              <button onclick="askTCVNCopilot('Quy định chiều rộng cầu thang và hành lang thoát nạn PCCC theo QCVN 06?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                Lối thoát nạn PCCC (QCVN 06)
+              </button>
+              <button onclick="askTCVNCopilot('Độ lún giới hạn của móng nhà khung BTCT theo TCVN 9362:2012?')" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-200 border border-slate-700 transition">
+                Độ lún giới hạn móng (TCVN 9362)
+              </button>
             </div>
+
+            <div class="flex gap-2">
+              <input
+                id="tcvn-query-input"
+                type="text"
+                placeholder="Nhập câu hỏi TCVN (VD: Bề rộng vết nứt giới hạn acrc là bao nhiêu?)..."
+                onkeydown="if(event.key==='Enter') askTCVNCopilot()"
+                class="flex-1 px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-amber-400"
+              />
+              <button onclick="askTCVNCopilot()" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shrink-0 transition">
+                Tra cứu AI
+              </button>
+            </div>
+
+            <div id="tcvn-chat-output" class="min-h-[120px]"></div>
           </div>
         </section>
 
@@ -1022,20 +1340,20 @@
             </div>
           </div>
 
-          <!-- Khung Hỏi đáp tiếp với AI về ảnh công trường & kết quả phân tích -->
+          <!-- Khung Hỏi đáp với AI về An toàn Công trường (Có ảnh hay không có ảnh đều hỏi được) -->
           <div class="p-4 rounded-2xl bg-slate-900/90 border border-sky-500/30 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <span class="text-xs font-bold text-sky-400">💬 Hỏi đáp tiếp với Kỹ sư An toàn AI (Theo đúng bức ảnh vừa phân tích)</span>
+              <span class="text-xs font-bold text-sky-400">Hỏi đáp với Kỹ sư An toàn AI (Hỏi trực tiếp không cần ảnh — hoặc bám sát ảnh đã tải)</span>
               <div class="flex flex-wrap gap-1.5">
-                <button type="button" onclick="askSiteFollowUp('Viết biên bản nhắc nhở an toàn lao động ngắn gọn gửi tổ đội trưởng dựa trên các lỗi trong ảnh')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Viết biên bản nhắc nhở</button>
-                <button type="button" onclick="askSiteFollowUp('Cần trang bị bổ sung những đồ bảo hộ (PPE) và thiết bị an toàn nào ngay cho công nhân trong ảnh?')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Đồ bảo hộ cần bổ sung?</button>
+                <button type="button" onclick="askSiteFollowUp('Viết biên bản nhắc nhở an toàn lao động ngắn gọn gửi tổ đội trưởng')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Viết biên bản nhắc nhở</button>
+                <button type="button" onclick="askSiteFollowUp('Cần trang bị những đồ bảo hộ (PPE) và thiết bị an toàn bắt buộc nào cho công nhân?')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Đồ bảo hộ cần bổ sung?</button>
               </div>
             </div>
             <div class="flex gap-2">
               <input
                 id="site-followup-input"
                 type="text"
-                placeholder="Đặt câu hỏi tiếp cho AI về bức ảnh công trường hoặc kết quả phân tích phía dưới..."
+                placeholder="Đặt bất kỳ câu hỏi nào về an toàn lao động / công trường (không cần ảnh vẫn hỏi được)..."
                 onkeydown="if(event.key==='Enter') askSiteFollowUp()"
                 class="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-sky-400"
               />
@@ -1128,20 +1446,20 @@
             </div>
           </div>
 
-          <!-- Khung Hỏi đáp tiếp với Bác sĩ Công trình AI về ảnh vết nứt & kết quả chẩn đoán -->
+          <!-- Khung Hỏi đáp với Bác sĩ Công trình AI (Có ảnh hay không có ảnh đều hỏi được) -->
           <div class="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2">
-              <span class="text-xs font-bold text-amber-400">💬 Hỏi đáp tiếp với Bác sĩ Công trình AI (Theo đúng bức ảnh &amp; phác đồ vừa chẩn đoán)</span>
+              <span class="text-xs font-bold text-amber-400">Hỏi đáp với Bác sĩ Công trình AI (Hỏi trực tiếp không cần ảnh — hoặc bám sát ảnh đã tải)</span>
               <div class="flex flex-wrap gap-1.5">
                 <button type="button" onclick="askCrackFollowUp('Vết nứt này có nguy cơ gây mất an toàn hoặc sập đổ ngay không? Có cần di tản hay chống đỡ khẩn cấp không?')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Có nguy hiểm ngay không?</button>
-                <button type="button" onclick="askCrackFollowUp('Có phương án xử lý nào tiết kiệm chi phí hơn mà vẫn đảm bảo kỹ thuật cho vết nứt này không?')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Phương án tiết kiệm hơn?</button>
+                <button type="button" onclick="askCrackFollowUp('Có phương án xử lý nào tiết kiệm chi phí hơn mà vẫn đảm bảo kỹ thuật không?')" class="px-2 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-300 border border-slate-700 transition">Phương án tiết kiệm hơn?</button>
               </div>
             </div>
             <div class="flex gap-2">
               <input
                 id="crack-followup-input"
                 type="text"
-                placeholder="Đặt câu hỏi tiếp cho Bác sĩ Công trình AI sau khi đọc kết quả phân tích..."
+                placeholder="Đặt câu hỏi về vết nứt, thấm dột, sửa chữa kết cấu (không cần ảnh vẫn hỏi được)..."
                 onkeydown="if(event.key==='Enter') askCrackFollowUp()"
                 class="flex-1 px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-400"
               />

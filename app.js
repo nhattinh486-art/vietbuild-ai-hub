@@ -1243,31 +1243,548 @@ function checkStructureTCVN(recordToDashboard = true) {
   const container = document.getElementById('tcvn-check-result');
   container.innerHTML = `
     <div class="space-y-3">
-      <div class="p-3 rounded-xl border ${beamOk ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'}">
-        <div class="flex items-center justify-between">
+      <div class="p-3.5 rounded-xl border ${beamOk ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'}">
+        <div class="flex items-center justify-between gap-2">
           <span class="font-semibold text-sm ${beamOk ? 'text-emerald-300' : 'text-rose-300'}">1. Chiều cao tiết diện dầm chính (h = ${beamH} mm)</span>
-          <span class="px-2 py-0.5 text-xs font-bold rounded ${beamOk ? 'bg-emerald-500 text-slate-950' : 'bg-rose-500 text-white'}">${beamOk ? 'ĐẠT' : 'CHƯA ĐẠT'}</span>
+          <span class="px-2 py-0.5 text-xs font-bold rounded shrink-0 ${beamOk ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">${beamOk ? 'ĐẠT' : 'CHƯA ĐẠT'}</span>
         </div>
-        <p class="text-xs text-slate-300 mt-1">Theo kinh nghiệm thiết kế &amp; điều kiện độ võng TCVN 5574:2018 (h = 1/12 ÷ 1/8 nhịp L), với nhịp L = ${spanM} m, chiều cao dầm hợp lý từ <strong>${minBeamH} mm – ${maxBeamH} mm</strong>.</p>
+        <p class="text-xs text-slate-300 mt-1 leading-relaxed">Theo điều kiện hạn chế độ võng TCVN 5574:2018 (h = 1/12 ÷ 1/8 nhịp L), với nhịp L = ${spanM} m, chiều cao dầm hợp lý từ <strong>${minBeamH} mm – ${maxBeamH} mm</strong>.</p>
+        ${!beamOk ? `
+          <div class="mt-2 p-2.5 rounded-lg fix-guide-box text-xs leading-relaxed">
+            <strong>Vì sao chưa đạt &amp; Cách giải quyết:</strong> Dầm chọn (h = ${beamH} mm) quá mảnh so với nhịp ${spanM} m, dễ gây võng lớn vượt giới hạn và nứt vùng kéo.<br>
+            <strong>→ Hướng xử lý:</strong> Tăng chiều cao dầm lên tối thiểu <strong>h ≥ ${Math.ceil(minBeamH / 50) * 50} mm</strong>; nếu bị khống chế chiều cao thông thủy, hãy giảm nhịp dầm (thêm cột/vách) hoặc chuyển sang dầm bẹt rộng kết hợp kiểm tra độ võng.
+          </div>
+        ` : ''}
       </div>
 
-      <div class="p-3 rounded-xl border ${coverOk ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'}">
-        <div class="flex items-center justify-between">
+      <div class="p-3.5 rounded-xl border ${coverOk ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-rose-500/10 border-rose-500/30'}">
+        <div class="flex items-center justify-between gap-2">
           <span class="font-semibold text-sm ${coverOk ? 'text-emerald-300' : 'text-rose-300'}">2. Lớp bê tông bảo vệ cốt thép chịu lực (c<sub>0</sub> = ${coverMm} mm)</span>
-          <span class="px-2 py-0.5 text-xs font-bold rounded ${coverOk ? 'bg-emerald-500 text-slate-950' : 'bg-rose-500 text-white'}">${coverOk ? 'ĐẠT TCVN 5574:2018' : 'VI PHẠM TCVN'}</span>
+          <span class="px-2 py-0.5 text-xs font-bold rounded shrink-0 ${coverOk ? 'bg-emerald-600 text-white' : 'bg-rose-600 text-white'}">${coverOk ? 'ĐẠT TCVN 5574' : 'VI PHẠM TCVN'}</span>
         </div>
-        <p class="text-xs text-slate-300 mt-1">Theo <strong>Mục 10.3.2 – Bảng 19 (TCVN 5574:2018)</strong>, cấu kiện dầm/cột trong điều kiện đã chọn yêu cầu chiều dày lớp bê tông bảo vệ tối thiểu <strong>c<sub>0,min</sub> = ${minCover} mm</strong>.</p>
+        <p class="text-xs text-slate-300 mt-1 leading-relaxed">Theo <strong>Mục 10.3.2 – Bảng 19 (TCVN 5574:2018)</strong>, cấu kiện trong điều kiện môi trường đã chọn yêu cầu chiều dày lớp bê tông bảo vệ tối thiểu <strong>c<sub>0,min</sub> = ${minCover} mm</strong>.</p>
+        ${!coverOk ? `
+          <div class="mt-2 p-2.5 rounded-lg fix-guide-box text-xs leading-relaxed">
+            <strong>Vì sao vi phạm &amp; Cách giải quyết:</strong> Lớp bảo vệ c<sub>0</sub> = ${coverMm} mm quá mỏng sẽ không ngăn được hơi ẩm/ion xâm thực làm gỉ cốt thép, giảm khả năng chống cháy và bám dính bê tông.<br>
+            <strong>→ Hướng xử lý:</strong> Tăng chiều dày lớp bảo vệ lên tối thiểu <strong>c<sub>0</sub> ≥ ${minCover} mm</strong> và bố trí con kê bê tông mác cao đúng quy cách khi thi công.
+          </div>
+        ` : ''}
       </div>
 
-      <div class="p-3 rounded-xl border ${slabOk ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'}">
-        <div class="flex items-center justify-between">
+      <div class="p-3.5 rounded-xl border ${slabOk ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/10 border-amber-500/30'}">
+        <div class="flex items-center justify-between gap-2">
           <span class="font-semibold text-sm ${slabOk ? 'text-emerald-300' : 'text-amber-300'}">3. Chiều dày bản sàn toàn khối (h<sub>s</sub> = ${slabH} mm)</span>
-          <span class="px-2 py-0.5 text-xs font-bold rounded ${slabOk ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500 text-slate-950'}">${slabOk ? 'ĐẠT' : 'LƯU Ý ĐỘ VÕNG'}</span>
+          <span class="px-2 py-0.5 text-xs font-bold rounded shrink-0 ${slabOk ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'}">${slabOk ? 'ĐẠT' : 'LƯU Ý ĐỘ VÕNG'}</span>
         </div>
-        <p class="text-xs text-slate-300 mt-1">Chiều dày sàn dân dụng khuyến nghị h<sub>s</sub> ≥ 100 mm và thỏa mãn điều kiện độ mảnh hạn chế độ võng (tối thiểu ~${Math.max(100, minSlabH)} mm).</p>
+        <p class="text-xs text-slate-300 mt-1 leading-relaxed">Chiều dày sàn dân dụng khuyến nghị h<sub>s</sub> ≥ 100 mm và thỏa mãn độ mảnh hạn chế độ võng (tối thiểu ~${Math.max(100, minSlabH)} mm).</p>
+        ${!slabOk ? `
+          <div class="mt-2 p-2.5 rounded-lg fix-guide-box text-xs leading-relaxed">
+            <strong>Vì sao cần lưu ý &amp; Cách giải quyết:</strong> Bản sàn dày ${slabH} mm hơi mỏng so với nhịp ${spanM} m, dễ bị rung khi đi lại, võng lớn và gây nứt tường xây ngăn phòng phía trên.<br>
+            <strong>→ Hướng xử lý:</strong> Tăng chiều dày bản sàn lên ít nhất <strong>h<sub>s</sub> ≥ ${Math.ceil(Math.max(100, minSlabH) / 10) * 10} mm</strong> hoặc bố trí thêm dầm phụ chia nhỏ ô bản sàn.
+          </div>
+        ` : ''}
       </div>
     </div>
   `;
+}
+
+// ============================================================================
+// MỞ RỘNG PHÂN HỆ 2: CHUYỂN TAB CON + 4 BỘ CÔNG CỤ KỸ THUẬT KẾT CẤU CHUẨN TCVN
+// ============================================================================
+
+function switchEstimatorSubTab(tabKey) {
+  document.querySelectorAll('.est-sub-panel').forEach(p => p.classList.add('hidden'));
+  const activePanel = document.getElementById(`est-sub-${tabKey}`);
+  if (activePanel) activePanel.classList.remove('hidden');
+
+  document.querySelectorAll('.est-subtab-btn').forEach(btn => {
+    const isActive = btn.dataset.estSubtab === tabKey;
+    btn.classList.toggle('tcvn-subtab-active', isActive);
+  });
+}
+
+function switchTcvnSubTab(tabKey) {
+  document.querySelectorAll('.tcvn-sub-panel').forEach(p => p.classList.add('hidden'));
+  const activePanel = document.getElementById(`tcvn-sub-${tabKey}`);
+  if (activePanel) activePanel.classList.remove('hidden');
+
+  document.querySelectorAll('.tcvn-subtab-btn').forEach(btn => {
+    const isActive = btn.dataset.tcvnSubtab === tabKey;
+    btn.classList.toggle('tcvn-subtab-active', isActive);
+    btn.style.backgroundColor = '';
+    btn.style.color = '';
+  });
+}
+
+function calcBeamRebar() {
+  const M = Math.max(1, parseFloat(document.getElementById('rc-moment')?.value) || 140); // kN.m
+  const b = Math.max(120, parseFloat(document.getElementById('rc-b')?.value) || 250); // mm
+  const h = Math.max(150, parseFloat(document.getElementById('rc-h')?.value) || 500); // mm
+  const a = Math.max(25, Math.min(h * 0.35, parseFloat(document.getElementById('rc-a')?.value) || 40)); // mm
+  const conc = document.getElementById('rc-concrete')?.value || 'B25';
+  const steel = document.getElementById('rc-steel')?.value || 'CB400-V';
+
+  const rbMap = { B20: 11.5, 'B22.5': 13.0, B25: 14.5, B30: 17.0, B35: 19.5 };
+  const rsMap = { 'CB300-V': 260, 'CB400-V': 350, 'CB500-V': 435 };
+  const xiRMap = { 'CB300-V': 0.583, 'CB400-V': 0.533, 'CB500-V': 0.493 };
+
+  const Rb = rbMap[conc] || 14.5;
+  const Rs = rsMap[steel] || 350;
+  const xiR = xiRMap[steel] || 0.533;
+  const alphaR = xiR * (1 - 0.5 * xiR);
+
+  const h0 = h - a;
+  const alphaM = (M * 1e6) / (Rb * b * h0 * h0);
+  const out = document.getElementById('rc-beam-result');
+  if (!out) return;
+
+  const glossaryHtml = `
+    <div class="mt-3 p-3 rounded-xl glossary-box text-[11px] leading-relaxed">
+      <div class="font-bold text-slate-800 mb-1">Giải thích ký hiệu kỹ thuật (TCVN 5574:2018):</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 text-slate-600">
+        <div><strong>M:</strong> Mô-men uốn tính toán tại tiết diện (kN·m).</div>
+        <div><strong>b, h:</strong> Bề rộng và chiều cao tiết diện dầm (mm).</div>
+        <div><strong>a:</strong> Khoảng cách từ mép kéo đến trọng tâm thép (mm).</div>
+        <div><strong>R<sub>b</sub>, R<sub>s</sub>:</strong> Cường độ nén bê tông &amp; kéo cốt thép (MPa).</div>
+        <div><strong>A<sub>s</sub>:</strong> Diện tích cốt thép dọc chịu kéo yêu cầu (mm²).</div>
+        <div><strong>α<sub>m</sub>, α<sub>R</sub>:</strong> Hệ số kiểm tra vùng nén (cần α<sub>m</sub> ≤ α<sub>R</sub>).</div>
+        <div><strong>μ:</strong> Hàm lượng cốt thép dọc trong tiết diện (%).</div>
+        <div><strong>h<sub>0</sub>:</strong> Chiều cao làm việc của tiết diện (h<sub>0</sub> = h − a).</div>
+      </div>
+    </div>
+  `;
+
+  if (alphaM > alphaR) {
+    const hMinSuggest = Math.ceil((Math.sqrt((M * 1e6) / (alphaR * Rb * b)) + a) / 50) * 50;
+    out.innerHTML = `
+      <div class="p-4 rounded-xl bg-rose-500/10 border border-rose-500/40 space-y-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="font-bold text-sm text-rose-700">KHÔNG ĐẠT: α<sub>m</sub> = ${alphaM.toFixed(3)} &gt; α<sub>R</sub> = ${alphaR.toFixed(3)}</span>
+          <span class="px-2 py-0.5 text-xs font-bold rounded bg-rose-600 text-white">NGUY CƠ PHÁ HOẠI GIÒN</span>
+        </div>
+        <div class="p-2.5 rounded-lg fix-guide-box text-xs leading-relaxed">
+          <strong>Giải thích nguyên nhân:</strong> Tiết diện dầm ${b}×${h} mm quá nhỏ so với mô-men M = ${M} kN·m. Nếu đặt cố thêm thép kéo, vùng bê tông chịu nén sẽ bị vỡ giòn đột ngột trước khi thép kịp chảy dẻo (rất nguy hiểm).<br>
+          <strong>→ Cách giải quyết:</strong>
+          (1) Tăng chiều cao dầm lên tối thiểu <strong>h ≥ ${hMinSuggest} mm</strong> (hiệu quả nhất);
+          (2) Hoặc tăng bề rộng dầm b lên ${b + 50}–${b + 100} mm;
+          (3) Hoặc nâng cấp bền bê tông lên B30/B35;
+          (4) Hoặc tính toán đặt thêm cốt thép chịu nén A'<sub>s</sub> (cốt kép).
+        </div>
+      </div>
+      ${glossaryHtml}
+    `;
+    return;
+  }
+
+  const xi = 1 - Math.sqrt(Math.max(0, 1 - 2 * alphaM));
+  const AsReq = (xi * Rb * b * h0) / Rs; // mm2
+  const muMin = 0.1; // %
+  const muMax = xiR * (Rb / Rs) * 100;
+  const AsMin = (muMin / 100) * b * h0;
+  const AsDesign = Math.max(AsReq, AsMin);
+  const muActual = (AsDesign / (b * h0)) * 100;
+  const isMinGoverned = AsReq < AsMin;
+
+  // Gợi ý chọn thanh thép thực tế (2..6 thanh, đường kính 14..25mm)
+  const dias = [14, 16, 18, 20, 22, 25];
+  const options = [];
+  dias.forEach(d => {
+    const area1 = (Math.PI * d * d) / 4;
+    const n = Math.max(2, Math.ceil(AsDesign / area1));
+    if (n <= 6) {
+      const clearSpacing = (b - 2 * 25 - 2 * 8 - n * d) / Math.max(1, n - 1);
+      if (clearSpacing >= Math.max(25, d)) {
+        const totalArea = n * area1;
+        const surplus = ((totalArea - AsDesign) / AsDesign) * 100;
+        options.push({ n, d, totalArea, surplus, label: `${n}Ø${d}` });
+      }
+    }
+  });
+  options.sort((x, y) => x.surplus - y.surplus);
+  const needsTwoLayers = options.length === 0;
+  const best = options[0] || { n: 4, d: 22, totalArea: 4 * 380.1, surplus: 0, label: 'Bố trí 2 lớp' };
+  const topSuggestions = options.slice(0, 3);
+
+  // Vẽ mặt cắt dầm SVG động (nền trắng sạch sẽ, chữ sắc nét)
+  const svgW = 166;
+  const svgH = 192;
+  const ratio = Math.min(94 / b, 126 / h);
+  const drawW = Math.max(54, Math.round(b * ratio));
+  const drawH = Math.max(76, Math.round(h * ratio));
+  const ox = Math.round((svgW - drawW) / 2);
+  const oy = Math.round((svgH - drawH) / 2) - 4;
+  const pad = Math.max(8, Math.round(drawW * 0.13));
+
+  let bottomBarsSvg = '';
+  const barCount = Math.min(6, best.n);
+  const barR = Math.max(3.4, Math.min(5, best.d / 4.4));
+  for (let i = 0; i < barCount; i++) {
+    const cx = barCount === 1
+      ? ox + drawW / 2
+      : ox + pad + (i * (drawW - 2 * pad)) / (barCount - 1);
+    const cy = oy + drawH - pad;
+    bottomBarsSvg += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${barR.toFixed(1)}" fill="#b91c1c" />`;
+  }
+
+  const beamSvg = `
+    <div class="bg-white border border-slate-200 rounded-xl p-2 flex items-center justify-center">
+      <svg viewBox="0 0 ${svgW} ${svgH}" class="w-full max-w-[166px] mx-auto block" role="img" aria-label="Sơ đồ mặt cắt dầm">
+        <rect x="${ox}" y="${oy}" width="${drawW}" height="${drawH}" rx="2" fill="#f1f5f9" stroke="#334155" stroke-width="2" />
+        <rect x="${ox + pad - 3}" y="${oy + pad - 3}" width="${drawW - 2 * pad + 6}" height="${drawH - 2 * pad + 6}" rx="3" fill="none" stroke="#0284c7" stroke-width="1.6" stroke-dasharray="3,2" />
+        <circle cx="${ox + pad}" cy="${oy + pad}" r="3" fill="#64748b" />
+        <circle cx="${ox + drawW - pad}" cy="${oy + pad}" r="3" fill="#64748b" />
+        ${bottomBarsSvg}
+        <text x="${ox + drawW / 2}" y="${oy - 6}" text-anchor="middle" font-size="10" font-weight="700" fill="#1e293b">b = ${b} mm</text>
+        <text x="${ox + drawW + 6}" y="${oy + drawH / 2 + 3}" font-size="10" font-weight="700" fill="#1e293b">h=${h}</text>
+        <text x="${ox + drawW / 2}" y="${oy + drawH + 15}" text-anchor="middle" font-size="10" font-weight="700" fill="#8b1e2b">Chọn: ${best.label}</text>
+      </svg>
+    </div>
+  `;
+
+  out.innerHTML = `
+    <div class="grid grid-cols-1 sm:grid-cols-12 gap-4 items-center p-4 rounded-xl tech-surface border">
+      <div class="sm:col-span-5">${beamSvg}</div>
+      <div class="sm:col-span-7 space-y-2.5 text-xs text-slate-700">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+          <span class="text-slate-600 font-medium">Diện tích thép yêu cầu A<sub>s</sub>:</span>
+          <span class="font-mono-tech font-extrabold text-sm text-emerald-700">${Math.round(AsDesign)} mm² (${(AsDesign / 100).toFixed(2)} cm²)</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-600">Hệ số kiểm tra α<sub>m</sub> / α<sub>R</sub>:</span>
+          <span class="font-mono-tech font-bold text-slate-900">${alphaM.toFixed(3)} / ${alphaR.toFixed(3)} <span class="text-emerald-700">(Đạt)</span></span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-600">Hàm lượng cốt thép μ:</span>
+          <span class="font-mono-tech font-bold text-emerald-700">${muActual.toFixed(2)}% <span class="text-slate-500 font-normal">(${muMin}% ÷ ${muMax.toFixed(2)}%)</span></span>
+        </div>
+        <div class="pt-1">
+          <div class="text-slate-600 font-medium mb-1.5">Phương án chọn thanh thép tối ưu (1 lớp):</div>
+          <div class="flex flex-wrap gap-1.5">
+            ${topSuggestions.map((opt, idx) => `
+              <span class="px-2.5 py-1 rounded-lg font-mono-tech text-[11px] font-bold border ${idx === 0 ? 'bg-emerald-50 text-emerald-800 border-emerald-300' : 'bg-white text-slate-700 border-slate-300'}">
+                ${opt.label} (${Math.round(opt.totalArea)} mm²)
+              </span>
+            `).join('') || `<span class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 border border-amber-300 text-[11px] font-semibold">Cần bố trí 2 lớp thép</span>`}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${needsTwoLayers ? `
+      <div class="mt-2.5 p-3 rounded-xl fix-guide-box text-xs leading-relaxed">
+        <strong>Lưu ý bố trí thép &amp; Cách giải quyết:</strong> Lượng thép A<sub>s</sub> = ${Math.round(AsDesign)} mm² không xếp vừa 1 hàng trong bề rộng dầm b = ${b} mm (khoảng hở thông thủy giữa các thanh nhỏ hơn max(25mm, d), đá dăm bê tông khó lọt xuống gây rỗ đáy dầm).<br>
+        <strong>→ Hướng xử lý:</strong> Chia cốt thép thành <strong>2 lớp</strong> (đặt thanh kê ngang Ø25 giữa 2 lớp và tăng giá trị <strong>a</strong> lên 60–65 mm để tính lại), hoặc tăng bề rộng dầm b lên <strong>${b + 50} mm</strong>.
+      </div>
+    ` : ''}
+
+    ${isMinGoverned ? `
+      <div class="mt-2.5 p-3 rounded-xl fix-guide-box text-xs leading-relaxed">
+        <strong>Lưu ý hàm lượng tối thiểu:</strong> Mô-men nhỏ nên A<sub>s</sub> tính toán (${Math.round(AsReq)} mm²) nhỏ hơn A<sub>s,min</sub> (${Math.round(AsMin)} mm²). Hệ thống đã tự động lấy theo <strong>μ<sub>min</sub> = 0.1%</strong> để tránh dầm bị phá hoại giòn ngay khi nứt.
+      </div>
+    ` : ''}
+
+    ${glossaryHtml}
+  `;
+}
+
+function calcAnchorLap() {
+  const d = parseFloat(document.getElementById('anc-dia')?.value) || 18;
+  const conc = document.getElementById('anc-concrete')?.value || 'B25';
+  const steel = document.getElementById('anc-steel')?.value || 'CB400-V';
+  const stress = document.getElementById('anc-stress')?.value || 'tension';
+  const ratio = document.getElementById('anc-ratio')?.value || '50';
+
+  const rbtMap = { B15: 0.75, B20: 0.90, 'B22.5': 0.98, B25: 1.05, B30: 1.15, B35: 1.30 };
+  const rsMap = { 'CB240-T': 210, 'CB300-V': 260, 'CB400-V': 350, 'CB500-V': 435 };
+  const isSmooth = steel === 'CB240-T';
+
+  const Rbt = rbtMap[conc] || 1.05;
+  const Rs = rsMap[steel] || 350;
+  const eta1 = isSmooth ? 1.5 : 2.5;
+  const eta2 = d <= 32 ? 1.0 : 0.9;
+  const Rbond = eta1 * eta2 * Rbt;
+
+  const l0an = (Rs * d) / (4 * Rbond);
+  const alphaAn = stress === 'tension' ? 1.0 : 0.75;
+  const lanRaw = Math.max(alphaAn * l0an, 15 * d, 200);
+  const lan = Math.ceil(lanRaw / 10) * 10;
+
+  const alphaLap = stress === 'compression' ? 0.9 : (ratio === '100' ? 2.0 : 1.2);
+  const llapRaw = Math.max(alphaLap * l0an, 20 * d, 250);
+  const llap = Math.ceil(llapRaw / 10) * 10;
+
+  const lanD = Math.ceil(lan / d);
+  const llapD = Math.ceil(llap / d);
+
+  const out = document.getElementById('anc-lap-result');
+  if (!out) return;
+  out.innerHTML = `
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="p-4 rounded-xl tech-surface border space-y-1">
+        <div class="text-xs font-medium text-slate-600">Chiều dài neo cơ bản (l<sub>0,an</sub>)</div>
+        <div class="font-mono-tech text-2xl font-extrabold text-slate-900">${Math.round(l0an)} mm</div>
+        <div class="text-[11px] text-slate-600">R<sub>bond</sub> = ${Rbond.toFixed(2)} MPa (η₁ = ${eta1}, R<sub>bt</sub> = ${Rbt} MPa)</div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-sky-50 border border-sky-200 space-y-1">
+        <div class="text-xs text-sky-800 font-semibold">Chiều dài Neo tính toán (l<sub>an</sub>)</div>
+        <div class="font-mono-tech text-2xl font-extrabold text-sky-700">${lan} mm <span class="text-sm font-bold">(≈ ${lanD}d)</span></div>
+        <div class="text-[11px] text-slate-600">Tối thiểu: max(15d, 200 mm) = ${Math.max(15 * d, 200)} mm</div>
+      </div>
+
+      <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1">
+        <div class="text-xs text-emerald-800 font-semibold">Chiều dài Nối chồng (l<sub>lap</sub>)</div>
+        <div class="font-mono-tech text-2xl font-extrabold text-emerald-700">${llap} mm <span class="text-sm font-bold">(≈ ${llapD}d)</span></div>
+        <div class="text-[11px] text-slate-600">Hệ số α<sub>lap</sub> = ${alphaLap} • Tối thiểu max(20d, 250 mm) = ${Math.max(20 * d, 250)} mm</div>
+      </div>
+    </div>
+
+    ${(ratio === '100' && stress === 'tension') ? `
+      <div class="mt-3 p-3 rounded-xl fix-guide-box text-xs leading-relaxed">
+        <strong>Lưu ý nối 100% thanh thép tại 1 mặt cắt &amp; Cách tối ưu:</strong> Nối đồng thời toàn bộ thanh thép chịu kéo tại cùng một vị trí khiến hệ số tăng vọt lên α<sub>lap</sub> = 2.0 (l<sub>lap</sub> = <strong>${llap} mm</strong>), vừa tốn thép vừa gây tắc bê tông cục bộ.<br>
+        <strong>→ Cách giải quyết:</strong> Bố trí <strong>nối so le ≤ 50%</strong> số thanh trên 1 mặt cắt (khoảng cách giữa 2 tâm mối nối ≥ 1,3·l<sub>lap</sub>) hoặc chuyển sang dùng <strong>khớp nối ren Coupler</strong> cho thép Ø≥20 mm.
+      </div>
+    ` : `
+      <div class="mt-3 p-3 rounded-xl fix-guide-box text-xs leading-relaxed">
+        <strong>Lưu ý thi công công trường (TCVN 5574:2018):</strong>
+        Với thép <strong>Ø${d} ${steel}</strong> trong bê tông <strong>${conc}</strong>, khi nối so le ≤ 50%, khoảng cách giữa 2 tâm mối nối liền kề phải đạt ≥ 1,3·l<sub>lap</sub> = <strong>${Math.ceil((1.3 * llap) / 10) * 10} mm</strong>, và tuyệt đối không nối tại vùng mô-men lớn nhất.
+      </div>
+    `}
+
+    <div class="mt-3 p-3 rounded-xl glossary-box text-[11px] leading-relaxed">
+      <div class="font-bold text-slate-800 mb-1">Giải thích ký hiệu kỹ thuật (TCVN 5574:2018 – Mục 10.3.3):</div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-0.5 text-slate-600">
+        <div><strong>R<sub>bt</sub>:</strong> Cường độ chịu kéo tính toán của bê tông (MPa).</div>
+        <div><strong>R<sub>bond</sub>:</strong> Cường độ bám dính giữa cốt thép và bê tông (MPa).</div>
+        <div><strong>η<sub>1</sub>:</strong> Hệ số bề mặt thép (2.5 cho thép gân; 1.5 cho thép trơn).</div>
+        <div><strong>l<sub>0,an</sub>:</strong> Chiều dài neo cơ bản (chưa nhân hệ số điều kiện).</div>
+        <div><strong>l<sub>an</sub>:</strong> Chiều dài neo tính toán bắt buộc vào gối tựa / cột.</div>
+        <div><strong>l<sub>lap</sub> &amp; d:</strong> Chiều dài đoạn nối chồng (d là đường kính thép).</div>
+      </div>
+    </div>
+  `;
+}
+
+function calcLoads2737() {
+  const room = document.getElementById('load-room-type')?.value || 'residential';
+  const roomMap = {
+    residential: { name: 'Phòng ngủ, phòng khách, căn hộ chung cư', qk: 1.5, yf: 1.3, note: 'Nhóm công năng A — Nhà ở dân dụng (TCVN 2737:2023 Bảng 4).' },
+    office: { name: 'Văn phòng làm việc, phòng học, phòng kỹ thuật', qk: 2.0, yf: 1.3, note: 'Nhóm công năng B/C1 — Khu vực có bàn ghế cố định hoặc văn phòng.' },
+    corridor_res: { name: 'Hành lang, cầu thang nhà ở & văn phòng', qk: 3.0, yf: 1.3, note: 'Khu vực lưu thông đông người cần hệ số an toàn cao hơn phòng ở.' },
+    balcony: { name: 'Ban công, lô gia (dải 0.8m sát lan can)', qk: 4.0, yf: 1.3, note: 'Tính toàn bộ diện tích ban công lấy 2.0 kN/m²; dải 0.8m sát mép lấy 4.0 kN/m².' },
+    hall: { name: 'Hội trường, trung tâm thương mại, sảnh lớn', qk: 4.0, yf: 1.3, note: 'Khu vực tập trung đông người đứng (có thể lên tới 5.0 kN/m² khi không có ghế cố định).' },
+    parking: { name: 'Bãi đỗ xe ô tô con (≤ 2.5 tấn)', qk: 2.5, yf: 1.3, note: 'Cần kiểm tra thêm tải trọng tập trung bánh xe cục bộ theo TCVN 2737:2023.' },
+    roof_use: { name: 'Sàn mái có sử dụng (sân thượng, nghỉ ngơi)', qk: 1.5, yf: 1.3, note: 'Nếu làm sân thượng tổ chức sự kiện đông người lấy 3.0 – 4.0 kN/m².' },
+    roof_no: { name: 'Sàn mái không sử dụng (chỉ sửa chữa)', qk: 0.75, yf: 1.3, note: 'Hoạt tải sửa chữa mái tối thiểu 0.75 kN/m² (75 kg/m²).' }
+  };
+  const rm = roomMap[room] || roomMap.residential;
+  const qtt = rm.qk * rm.yf;
+
+  const liveOut = document.getElementById('load-live-result');
+  if (liveOut) {
+    liveOut.innerHTML = `
+      <div class="grid grid-cols-3 gap-2.5">
+        <div class="p-3 rounded-xl tech-surface border">
+          <div class="text-[11px] text-slate-600">Hoạt tải tiêu chuẩn q<sub>k</sub></div>
+          <div class="font-mono-tech text-lg font-extrabold text-sky-700">${rm.qk.toFixed(2)} kN/m²</div>
+          <div class="text-[11px] text-slate-500">≈ ${Math.round(rm.qk * 100)} kg/m²</div>
+        </div>
+        <div class="p-3 rounded-xl tech-surface border">
+          <div class="text-[11px] text-slate-600">Hệ số tin cậy γ<sub>f</sub></div>
+          <div class="font-mono-tech text-lg font-extrabold text-slate-900">${rm.yf.toFixed(1)}</div>
+          <div class="text-[11px] text-slate-500">TCVN 2737:2023</div>
+        </div>
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div class="text-[11px] text-emerald-800 font-medium">Hoạt tải tính toán q<sub>tt</sub></div>
+          <div class="font-mono-tech text-lg font-extrabold text-emerald-700">${qtt.toFixed(2)} kN/m²</div>
+          <div class="text-[11px] text-slate-600">≈ ${Math.round(qtt * 100)} kg/m²</div>
+        </div>
+      </div>
+      <p class="text-xs text-slate-600 mt-3 leading-relaxed"><strong>Ghi chú:</strong> ${rm.note}</p>
+      <div class="mt-3 p-3 rounded-xl glossary-box text-[11px] leading-relaxed">
+        <div class="font-bold text-slate-800 mb-1">Giải thích ký hiệu Hoạt tải:</div>
+        <div class="space-y-0.5 text-slate-600">
+          <div><strong>q<sub>k</sub>:</strong> Hoạt tải tiêu chuẩn phân bố đều trên sàn (1 kN/m² ≈ 100 kg/m²).</div>
+          <div><strong>γ<sub>f</sub>:</strong> Hệ số độ tin cậy (hệ số vượt tải) nhân thêm để đảm bảo an toàn.</div>
+          <div><strong>q<sub>tt</sub>:</strong> Hoạt tải tính toán đưa vào phần mềm kết cấu (q<sub>tt</sub> = γ<sub>f</sub> · q<sub>k</sub>).</div>
+        </div>
+      </div>
+    `;
+  }
+
+  const zone = document.getElementById('wind-zone')?.value || 'III';
+  const terrain = document.getElementById('wind-terrain')?.value || 'B';
+  const ze = Math.max(3, parseFloat(document.getElementById('wind-height')?.value) || 15);
+
+  const w3sMap = { I: 0.65, II: 0.95, III: 1.25, IV: 1.55, V: 1.85 };
+  const W3s10 = w3sMap[zone] || 1.25;
+  const W0 = W3s10 * 0.852;
+
+  const terrainParams = {
+    A: { zg: 213.36, alpha: 11.5, zmin: 2.13 },
+    B: { zg: 274.32, alpha: 9.5, zmin: 4.57 },
+    C: { zg: 365.76, alpha: 7.0, zmin: 9.14 }
+  };
+  const tp = terrainParams[terrain] || terrainParams.B;
+  const zEff = Math.max(ze, tp.zmin);
+  const kZe = 2.01 * Math.pow(zEff / tp.zg, 2 / tp.alpha);
+
+  const Gf = 0.85;
+  const WkFront = W3s10 * kZe * 0.8 * Gf;
+  const WkTotal = W3s10 * kZe * 1.4 * Gf;
+  const WttTotal = WkTotal * 2.1;
+  const isHighWindAlert = ze >= 40 || zone === 'IV' || zone === 'V';
+
+  const windOut = document.getElementById('load-wind-result');
+  if (windOut) {
+    windOut.innerHTML = `
+      <div class="grid grid-cols-3 gap-2.5">
+        <div class="p-3 rounded-xl tech-surface border">
+          <div class="text-[11px] text-slate-600">Hệ số độ cao k(z<sub>e</sub>)</div>
+          <div class="font-mono-tech text-lg font-extrabold text-slate-900">${kZe.toFixed(3)}</div>
+          <div class="text-[11px] text-slate-500">Địa hình ${terrain} • H=${ze}m</div>
+        </div>
+        <div class="p-3 rounded-xl bg-sky-50 border border-sky-200">
+          <div class="text-[11px] text-sky-800 font-medium">Gió tiêu chuẩn W<sub>k</sub></div>
+          <div class="font-mono-tech text-lg font-extrabold text-sky-700">${WkTotal.toFixed(2)} kN/m²</div>
+          <div class="text-[11px] text-slate-600">Đón gió: ${WkFront.toFixed(2)} kN/m²</div>
+        </div>
+        <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div class="text-[11px] text-emerald-800 font-medium">Gió tính toán W<sub>tt</sub></div>
+          <div class="font-mono-tech text-lg font-extrabold text-emerald-700">${WttTotal.toFixed(2)} kN/m²</div>
+          <div class="text-[11px] text-slate-600">γ<sub>f</sub> = 2.1 (TCVN 2023)</div>
+        </div>
+      </div>
+
+      ${isHighWindAlert ? `
+        <div class="mt-2.5 p-3 rounded-xl fix-guide-box text-xs leading-relaxed">
+          <strong>Lưu ý gió lớn / công trình cao &amp; Cách xử lý:</strong> ${ze >= 40 ? `Công trình cao H = ${ze} m (≥ 40 m)` : `Vùng gió ${zone} chịu bão mạnh`} dễ phát sinh dao động ngang và chuyển vị đỉnh lớn.<br>
+          <strong>→ Hướng xử lý:</strong> Cần tính chi tiết hệ số giật G<sub>f</sub> theo chu kỳ dao động riêng T<sub>1</sub>, bố trí hệ vách cứng/lõi thang máy đối xứng và kiểm tra chuyển vị đỉnh ≤ H/500.
+        </div>
+      ` : `
+        <p class="text-xs text-slate-600 mt-3 leading-relaxed">
+          <strong>Chuẩn mới TCVN 2737:2023:</strong> Vùng ${zone} có W<sub>3s,10</sub> = ${W3s10} kN/m² (W<sub>0</sub> ≈ ${W0.toFixed(2)} kN/m²), tính với G<sub>f</sub> = 0.85 và tổng hệ số khí động c = 1.4 (đón 0.8 + hút 0.6).
+        </p>
+      `}
+
+      <div class="mt-3 p-3 rounded-xl glossary-box text-[11px] leading-relaxed">
+        <div class="font-bold text-slate-800 mb-1">Giải thích ký hiệu Tải trọng Gió (TCVN 2737:2023):</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 text-slate-600">
+          <div><strong>W<sub>3s,10</sub>:</strong> Áp lực gió cơ sở 3 giây (chu kỳ lặp 10 năm).</div>
+          <div><strong>k(z<sub>e</sub>):</strong> Hệ số thay đổi áp lực gió theo độ cao &amp; địa hình.</div>
+          <div><strong>G<sub>f</sub>:</strong> Hệ số hiệu ứng giật của gió tác dụng lên công trình.</div>
+          <div><strong>W<sub>k</sub>, W<sub>tt</sub>:</strong> Áp lực gió tiêu chuẩn và tính toán (γ<sub>f</sub> = 2.1).</div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function calcFoundationPccc() {
+  const Nton = Math.max(5, parseFloat(document.getElementById('fnd-load')?.value) || 65);
+  const R0 = Math.max(50, parseFloat(document.getElementById('fnd-r0')?.value) || 180); // kN/m2
+  const Hm = Math.max(0.6, parseFloat(document.getElementById('fnd-depth')?.value) || 1.6); // m
+
+  const Nkn = Nton * 10;
+  const gammaTb = 20;
+  const netBearing = R0 - gammaTb * Hm;
+  const isWeakSoil = netBearing <= 25;
+  const Areq = (Nkn * 1.1) / Math.max(25, netBearing);
+  const sideRaw = Math.sqrt(Areq);
+  const side = Math.ceil(sideRaw * 10) / 10;
+  const Aactual = side * side;
+  const pActual = (Nkn / Aactual) + gammaTb * Hm;
+  const hmRec = Math.max(0.4, Math.ceil((side / 4.2) * 20) / 20);
+  const isSafe = !isWeakSoil && pActual <= R0;
+
+  const fndOut = document.getElementById('fnd-calc-result');
+  if (fndOut) {
+    fndOut.innerHTML = `
+      <div class="grid grid-cols-2 gap-3 text-xs">
+        <div class="p-3 rounded-xl bg-sky-50 border border-sky-200">
+          <div class="text-sky-800 font-medium">Kích thước đáy móng gợi ý</div>
+          <div class="font-mono-tech text-lg font-extrabold text-sky-700 mt-0.5">${side.toFixed(1)}m × ${side.toFixed(1)}m</div>
+          <div class="text-[11px] text-slate-600">Diện tích A = ${Aactual.toFixed(2)} m² (A<sub>yc</sub> = ${Areq.toFixed(2)} m²)</div>
+        </div>
+        <div class="p-3 rounded-xl border ${isSafe ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}">
+          <div class="${isSafe ? 'text-emerald-800' : 'text-rose-800'} font-medium">Áp lực đáy móng p<sub>tb</sub></div>
+          <div class="font-mono-tech text-lg font-extrabold ${isSafe ? 'text-emerald-700' : 'text-rose-700'} mt-0.5">${pActual.toFixed(1)} kN/m²</div>
+          <div class="text-[11px] text-slate-600">${isSafe ? `ĐẠT (≤ R₀ = ${R0} kN/m²)` : `KHÔNG ĐẠT (Vượt R₀ = ${R0} kN/m²)`}</div>
+        </div>
+      </div>
+      <p class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+        <strong>Chiều cao đài móng sơ bộ chống chọc thủng:</strong> h<sub>m</sub> ≥ <strong>${Math.round(hmRec * 1000)} mm</strong>.
+      </p>
+
+      ${(!isSafe || side > 2.6) ? `
+        <div class="mt-2.5 p-3 rounded-xl fix-guide-box text-xs leading-relaxed">
+          <strong>Vì sao cần lưu ý &amp; Cách giải quyết:</strong> ${!isSafe ? `Đất nền yếu (R<sub>0</sub> = ${R0} kN/m²) không đủ chịu tải trọng chân cột ${Nton} Tấn ở độ sâu ${Hm} m, nguy cơ lún lệch và trượt nền cao.` : `Đế móng đơn quá rộng (${side.toFixed(1)}m > 2.6m) dễ chồng lấn móng cột bên cạnh và tốn bê tông/cốt thép.`}<br>
+          <strong>→ Hướng xử lý:</strong> Chuyển sang phương án <strong>Móng băng giao thoa</strong> (liên kết các cột để giảm áp lực nền) hoặc <strong>Móng cọc ép BTCT / Cọc khoan nhồi</strong> truyền tải xuống tầng đất tốt sâu hơn.
+        </div>
+      ` : ''}
+
+      <div class="mt-3 p-3 rounded-xl glossary-box text-[11px] leading-relaxed">
+        <div class="font-bold text-slate-800 mb-1">Giải thích ký hiệu Nền móng (TCVN 9362:2012):</div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5 text-slate-600">
+          <div><strong>N:</strong> Lực dọc chân cột truyền xuống móng (1 Tấn ≈ 10 kN).</div>
+          <div><strong>R<sub>0</sub>:</strong> Cường độ chịu tải quy ước của lớp đất nền (kN/m²).</div>
+          <div><strong>H<sub>m</sub>:</strong> Chiều sâu chôn móng từ mặt đất tự nhiên (m).</div>
+          <div><strong>p<sub>tb</sub>, h<sub>m</sub>:</strong> Áp lực đáy móng trung bình &amp; chiều cao đài móng.</div>
+        </div>
+      </div>
+    `;
+  }
+
+  const city = document.getElementById('seis-city')?.value || 'danang';
+  const pcccH = document.getElementById('pccc-height')?.value || 'low';
+
+  const cityMap = {
+    danang: { name: 'TP. Đà Nẵng', agr: 0.068, level: 'Động đất yếu (Cấp VI)', advice: 'Thường chỉ cần bố trí cấu tạo kháng chấn cơ bản (trừ công trình quan trọng đặc biệt).' },
+    hanoi: { name: 'TP. Hà Nội', agr: 0.105, level: 'Động đất trung bình (Cấp VII)', advice: 'Bắt buộc tính toán tải trọng động đất theo TCVN 9386:2012 cho nhà nhiều tầng.' },
+    hcm: { name: 'TP. Hồ Chí Minh', agr: 0.075, level: 'Động đất yếu (Cấp VI)', advice: 'Nền đất yếu (loại D/E) làm khuếch đại gia tốc — nhà cao tầng cần kiểm tra kháng chấn.' },
+    haiphong: { name: 'TP. Hải Phòng', agr: 0.118, level: 'Động đất trung bình (Cấp VII)', advice: 'Bắt buộc tính toán kháng chấn và tăng cường cốt đai vùng nút khung.' },
+    dienbien: { name: 'Tỉnh Điện Biên', agr: 0.215, level: 'Động đất mạnh (Cấp VIII)', advice: 'Vùng nguy hiểm cao — Bắt buộc thiết kế kháng chấn cấp dẻo cao (DCH) theo TCVN 9386:2012.' },
+    nhatrang: { name: 'TP. Nha Trang', agr: 0.088, level: 'Động đất yếu–TB (Cấp VI–VII)', advice: 'Cần kiểm tra kháng chấn cho công trình từ 5 tầng trở lên.' }
+  };
+  const ct = cityMap[city] || cityMap.danang;
+
+  const pcccMap = {
+    low: { grade: 'Bậc III – IV', rei: 'Cột/Tường: R 60 • Sàn: REI 45', exit: 'Cầu thang thoát nạn rộng ≥ 0.9m – 1.05m (nhà ở riêng lẻ / văn phòng nhỏ).' },
+    mid: { grade: 'Bậc II', rei: 'Cột/Tường chịu lực: R 90 • Sàn: REI 45–60', exit: 'Yêu cầu buồng thang bộ kín (L1/N1), hành lang rộng ≥ 1.2m, hệ thống báo cháy & chữa cháy vách tường.' },
+    high: { grade: 'Bậc I (Nghiêm ngặt)', rei: 'Cột chịu lực: R 120–150 • Sàn: REI 60', exit: 'Bắt buộc thang bộ không nhiễm khói N1/N3 có tăng áp, tối thiểu 2 lối thoát nạn độc lập, hệ thống Sprinkler tự động.' }
+  };
+  const pc = pcccMap[pcccH] || pcccMap.low;
+
+  const spOut = document.getElementById('seis-pccc-result');
+  if (spOut) {
+    spOut.innerHTML = `
+      <div class="space-y-2.5 text-xs">
+        <div class="p-3.5 rounded-xl tech-surface border space-y-1">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold text-slate-900">Động đất (${ct.name} — TCVN 9386:2012)</span>
+            <span class="font-mono-tech px-2 py-0.5 rounded bg-amber-100 text-amber-900 border border-amber-300 font-bold shrink-0">a<sub>gR</sub> = ${ct.agr}g</span>
+          </div>
+          <div class="text-slate-700 leading-relaxed"><strong>Mức độ:</strong> ${ct.level}. ${ct.advice}</div>
+        </div>
+        <div class="p-3.5 rounded-xl tech-surface border space-y-1">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-bold text-slate-900">An toàn Cháy (QCVN 06:2022/BXD)</span>
+            <span class="font-mono-tech px-2 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-300 font-bold shrink-0">${pc.grade}</span>
+          </div>
+          <div class="text-slate-700"><strong>Giới hạn chịu lửa:</strong> ${pc.rei}</div>
+          <div class="text-slate-700 leading-relaxed"><strong>Thoát nạn:</strong> ${pc.exit}</div>
+        </div>
+      </div>
+
+      <div class="mt-3 p-3 rounded-xl glossary-box text-[11px] leading-relaxed">
+        <div class="font-bold text-slate-800 mb-1">Giải thích ký hiệu Động đất &amp; PCCC:</div>
+        <div class="space-y-0.5 text-slate-600">
+          <div><strong>a<sub>gR</sub>:</strong> Gia tốc nền tham chiếu (tính theo gia tốc trọng trường g ≈ 9.81 m/s²).</div>
+          <div><strong>R / REI (phút):</strong> Giới hạn chịu lửa — <strong>R</strong>: Chịu lực, <strong>E</strong>: Toàn vẹn ngăn khói lửa, <strong>I</strong>: Cách nhiệt (VD: REI 60 = chịu lửa 60 phút).</div>
+        </div>
+      </div>
+    `;
+  }
 }
 
 async function askTCVNCopilot(presetQuestion = null) {
@@ -1712,40 +2229,71 @@ async function askSiteFollowUp(presetQ = null) {
 
   thread.classList.remove('hidden');
 
-  if (AppState.aiMode !== 'gemini' || !(AppState.apiKey || '').trim()) {
-    thread.innerHTML += `
-      <div class="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs text-rose-200">
-        ⚠️ Vui lòng bật chế độ <strong>✨ Kết nối AI Gemini Thật (API Key)</strong> ở thanh trên cùng để hỏi đáp tiếp với Kỹ sư An toàn AI.
-      </div>
-    `;
-    thread.scrollTop = thread.scrollHeight;
-    return;
-  }
+  const hasImage = Boolean(AppState.uploadedSiteBase64);
+  const modeTag = hasImage
+    ? '<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold">Bám sát ảnh công trường đã tải</span>'
+    : '<span class="px-2 py-0.5 rounded bg-sky-50 text-sky-700 border border-sky-200 text-[10px] font-semibold">Tư vấn trực tiếp (không cần ảnh)</span>';
 
   const loadingId = `site-qa-${Date.now()}`;
   const safeQ = question.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   thread.innerHTML += `
-    <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-      <div class="text-xs font-semibold text-sky-300">👤 Câu hỏi của bạn: ${safeQ}</div>
-      <div id="${loadingId}" class="flex items-center gap-2 text-emerald-400 text-xs">
-        <span class="animate-spin inline-block w-4 h-4 shrink-0 border-2 border-emerald-400 border-t-transparent rounded-full"></span>
-        <span>Kỹ sư An toàn AI (${AppState.activeModel}) đang trả lời...</span>
+    <div class="p-3.5 rounded-xl tech-surface border space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="text-xs font-semibold text-slate-900">Câu hỏi của bạn: ${safeQ}</div>
+        ${modeTag}
+      </div>
+      <div id="${loadingId}" class="flex items-center gap-2 text-emerald-700 text-xs">
+        <span class="animate-spin inline-block w-4 h-4 shrink-0 border-2 border-emerald-600 border-t-transparent rounded-full"></span>
+        <span>Kỹ sư An toàn AI đang phân tích câu hỏi...</span>
       </div>
     </div>
   `;
   thread.scrollTop = thread.scrollHeight;
 
-  const contextStr = AppState.lastSiteAnalysisSummary
-    ? `Kết quả phân tích an toàn trước đó của bức ảnh: ${AppState.lastSiteAnalysisSummary}`
-    : 'Người dùng chưa tải ảnh hoặc đang hỏi chung về an toàn công trường.';
+  // Chế độ Mô phỏng thông minh (không có API Key) vẫn trả lời được câu hỏi trực tiếp!
+  if (AppState.aiMode !== 'gemini' || !(AppState.apiKey || '').trim()) {
+    const q = question.toLowerCase();
+    let simReply = '';
+    if (q.includes('biên bản') || q.includes('nhắc nhở')) {
+      simReply = `- Tiêu đề: BIÊN BẢN NHẮC NHỞ AN TOÀN LAO ĐỘNG (HSE) TẠI CÔNG TRƯỜNG.\n- Nội dung vi phạm cần khắc phục ngay: Rà soát đầy đủ mũ bảo hộ có quai cài, giày mũi thép, áo phản quang và dây đeo an toàn khi làm việc trên cao ≥ 2m.\n- Yêu cầu tổ đội trưởng tạm dừng hạng mục không đảm bảo an toàn, bổ sung đủ PPE trong vòng 30 phút và ký cam kết trước khi thi công tiếp.\n- Lưu ý: Kết nối Gemini API để AI tự điền đúng lỗi chi tiết từ bức ảnh công trường của bạn.`;
+    } else if (q.includes('bảo hộ') || q.includes('ppe')) {
+      simReply = `- Trang bị PPE cơ bản bắt buộc theo QCVN 18:2021/BXD: Mũ bảo hộ cứng có cài quai, giày bảo hộ mũi thép chống đinh, áo phản quang.\n- Khi cắt/mài/hàn: Bắt buộc đeo kính che mặt hoặc kính bảo hộ chống tia lửa, khẩu trang lọc bụi mịn, găng tay da chịu nhiệt và máy mài phải còn nguyên ốp chắn bảo vệ.\n- Khi làm việc trên cao ≥ 2m: Bắt buộc đeo dây đai an toàn toàn thân 2 móc nối vào dây cứu sinh độc lập.`;
+    } else if (q.includes('giàn giáo') || q.includes('trên cao') || q.includes('té ngã')) {
+      simReply = `- Quy định làm việc trên cao (QCVN 18:2021/BXD): Phải có sàn thao tác kín rộng ≥ 60 cm, lan can bảo vệ cao 0.9–1.1 m và tấm chắn chân (toe-board) cao ≥ 15 cm chống rơi dụng cụ.\n- Giàn giáo phải đặt trên nền phẳng cứng, có kích tăng, giằng chéo đầy đủ và neo chắc vào kết cấu công trình theo lưới quy định.\n- Nghiêm cấm leo trèo ngoài khung giàn giáo hoặc đứng trên lan can/thang chữ A gần mép sàn hở.`;
+    } else if (q.includes('điện') || q.includes('máy cắt') || q.includes('hàn')) {
+      simReply = `- An toàn điện công trường: Tủ điện thi công phải có CB chống giật (ELCB/RCCB 30mA), dây điện treo cao trên giá cách điện ≥ 2.5m (không kéo lê dưới nước/sắt thép).\n- Máy cắt/mài cầm tay bắt buộc giữ nguyên chụp chắn bảo vệ đĩa cắt và có công tắc an toàn.\n- Khu vực hàn cắt phải dọn sạch vật liệu dễ cháy và đặt sẵn bình chữa cháy xách tay trong bán kính ≤ 5m.`;
+    } else {
+      simReply = `- Nguyên tắc an toàn công trường theo QCVN 18:2021/BXD: Nhận diện mối nguy trước khi làm việc (JSA), trang bị đủ PPE theo đúng công việc và che chắn toàn bộ lỗ mở/mép hở.\n- Mọi hạng mục trên cao, đào đất sâu > 1.2m hoặc dùng điện tạm đều cần kỹ sư HSE kiểm tra nghiệm thu trước ca làm việc.\n- Mẹo: Bạn có thể kết nối Gemini API Key để Kỹ sư An toàn AI trả lời chuyên sâu mọi tình huống thực tế (có ảnh hoặc không có ảnh đều được).`;
+    }
+    const target = document.getElementById(loadingId);
+    if (target) {
+      target.className = 'pt-1';
+      target.innerHTML = formatAIResponseHTML(simReply);
+    }
+    thread.scrollTop = thread.scrollHeight;
+    return;
+  }
 
-  const prompt = `Bạn là Kỹ sư Giám sát An toàn Lao động (HSE) tại công trường xây dựng Việt Nam.
-${contextStr}
-Hãy trả lời câu hỏi tiếp theo của người dùng một cách chính xác, thực tế, dễ áp dụng. Dùng dấu gạch đầu dòng (-), không dùng dấu (*), không dùng cú pháp LaTeX $...$, mỗi ý và mỗi câu hoàn chỉnh xuống dòng riêng rõ ràng.
+  let prompt = '';
+  if (hasImage) {
+    const summaryText = AppState.lastSiteAnalysisSummary
+      ? `Kết quả phân tích an toàn trước đó của bức ảnh: ${AppState.lastSiteAnalysisSummary}`
+      : 'Người dùng đã tải ảnh công trường đính kèm.';
+    prompt = `Bạn là Kỹ sư Giám sát An toàn Lao động (HSE) tại công trường xây dựng Việt Nam.
+QUY TẮC BẮT BUỘC: Người dùng ĐÃ tải lên bức ảnh công trường đính kèm.
+${summaryText}
+Hãy trả lời câu hỏi của người dùng BÁM SÁT 100% đúng những gì nhìn thấy trong bức ảnh đính kèm và bối cảnh an toàn công trường đó, KHÔNG nói lan man hay chệch hướng sang vấn đề không có trong ảnh.
+Dùng dấu gạch đầu dòng (-), không dùng dấu (*), không dùng cú pháp LaTeX $...$, mỗi ý và mỗi câu hoàn chỉnh xuống dòng riêng rõ ràng.
 Câu hỏi của người dùng: "${question}"`;
+  } else {
+    prompt = `Bạn là Kỹ sư Giám sát An toàn Lao động (HSE) chuyên nghiệp tại công trường xây dựng Việt Nam (am hiểu QCVN 18:2021/BXD).
+QUY TẮC BẮT BUỘC: Người dùng CHƯA tải ảnh lên và đang đặt câu hỏi tư vấn trực tiếp bằng văn bản. TUYỆT ĐỐI KHÔNG yêu cầu người dùng phải tải ảnh lên mới trả lời — hãy trả lời thẳng, chính xác, thực tế và dễ áp dụng ngay cho câu hỏi này.
+Dùng dấu gạch đầu dòng (-), không dùng dấu (*), không dùng cú pháp LaTeX $...$, mỗi ý và mỗi câu hoàn chỉnh xuống dòng riêng rõ ràng.
+Câu hỏi của người dùng: "${question}"`;
+  }
 
   try {
-    const reply = await callGeminiAPI(prompt, AppState.uploadedSiteBase64 || null, AppState.uploadedSiteMime || 'image/jpeg');
+    const reply = await callGeminiAPI(prompt, hasImage ? AppState.uploadedSiteBase64 : null, AppState.uploadedSiteMime || 'image/jpeg');
     const target = document.getElementById(loadingId);
     if (target) {
       target.className = 'pt-1';
@@ -1754,7 +2302,7 @@ Câu hỏi của người dùng: "${question}"`;
   } catch (err) {
     const target = document.getElementById(loadingId);
     if (target) {
-      target.className = 'text-xs text-rose-300';
+      target.className = 'text-xs text-rose-700';
       target.textContent = `❌ Lỗi trả lời: ${err.message}`;
     }
   }
@@ -2039,40 +2587,69 @@ async function askCrackFollowUp(presetQ = null) {
 
   thread.classList.remove('hidden');
 
-  if (AppState.aiMode !== 'gemini' || !(AppState.apiKey || '').trim()) {
-    thread.innerHTML += `
-      <div class="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-xs text-rose-200">
-        ⚠️ Vui lòng bật chế độ <strong>✨ Kết nối AI Gemini Thật (API Key)</strong> ở thanh trên cùng để hỏi đáp tiếp với Bác sĩ Công trình AI.
-      </div>
-    `;
-    thread.scrollTop = thread.scrollHeight;
-    return;
-  }
+  const hasImage = Boolean(AppState.uploadedCrackBase64);
+  const modeTag = hasImage
+    ? '<span class="px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold">Bám sát ảnh &amp; phác đồ đã chẩn đoán</span>'
+    : '<span class="px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-semibold">Tư vấn trực tiếp (không cần ảnh)</span>';
 
   const loadingId = `crack-qa-${Date.now()}`;
   const safeQ = question.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   thread.innerHTML += `
-    <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-      <div class="text-xs font-semibold text-amber-300">👤 Câu hỏi của bạn: ${safeQ}</div>
-      <div id="${loadingId}" class="flex items-center gap-2 text-emerald-400 text-xs">
-        <span class="animate-spin inline-block w-4 h-4 shrink-0 border-2 border-emerald-400 border-t-transparent rounded-full"></span>
-        <span>Bác sĩ Công trình AI (${AppState.activeModel}) đang trả lời...</span>
+    <div class="p-3.5 rounded-xl tech-surface border space-y-2">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <div class="text-xs font-semibold text-slate-900">Câu hỏi của bạn: ${safeQ}</div>
+        ${modeTag}
+      </div>
+      <div id="${loadingId}" class="flex items-center gap-2 text-emerald-700 text-xs">
+        <span class="animate-spin inline-block w-4 h-4 shrink-0 border-2 border-emerald-600 border-t-transparent rounded-full"></span>
+        <span>Bác sĩ Công trình AI đang phân tích câu hỏi...</span>
       </div>
     </div>
   `;
   thread.scrollTop = thread.scrollHeight;
 
-  const contextStr = AppState.lastCrackAnalysisSummary
-    ? `Kết quả chẩn đoán bệnh học công trình trước đó của bức ảnh: ${AppState.lastCrackAnalysisSummary}`
-    : 'Người dùng chưa tải ảnh hoặc đang hỏi chung về bệnh học kết cấu công trình.';
+  // Chế độ Mô phỏng thông minh (không có API Key) vẫn trả lời được câu hỏi trực tiếp!
+  if (AppState.aiMode !== 'gemini' || !(AppState.apiKey || '').trim()) {
+    const q = question.toLowerCase();
+    let simReply = '';
+    if (q.includes('nguy hiểm') || q.includes('sập') || q.includes('di tản') || q.includes('45')) {
+      simReply = `- Dấu hiệu vết nứt NGUY HIỂM cần xử lý khẩn cấp: Vết nứt xiên 45° tại đầu dầm/vách, nứt dọc thân cột kèm bong vỡ bê tông, bề rộng vết nứt > 0.3 mm (vượt giới hạn TCVN 5574:2018) và tiếp tục mở rộng theo thời gian.\n- Dấu hiệu ÍT NGUY HIỂM hơn: Vết nứt chân chim bề rộng < 0.2 mm chỉ nằm ở lớp vữa trát hoặc vị trí tiếp giáp tường gạch – cột bê tông.\n- Khuyến nghị: Gắn mốc thạch cao/thước đo vết nứt theo dõi 7–14 ngày; nếu vết nứt mở rộng nhanh hoặc có tiếng kêu rắc, phải chống đỡ tạm và mời đơn vị kiểm định kết cấu ngay.`;
+    } else if (q.includes('tiết kiệm') || q.includes('chi phí') || q.includes('rẻ')) {
+      simReply = `- Nếu là nứt vữa/nứt tường không chịu lực (< 0.3 mm): Phương án tiết kiệm nhất là cắt rãnh chữ V rộng 10 mm, vệ sinh sạch, trám keo đàn hồi Polyurethane (Sikaflex) hoặc dán lưới sợi thủy tinh rồi trát lại bằng vữa trộn phụ gia Sika Latex.\n- Nếu là nứt kết cấu (dầm/cột/sàn chịu lực): Tuyệt đối không chỉ trát che bề mặt vì sẽ nứt lại và gây gỉ thép — tối thiểu phải bơm keo Epoxy áp lực thấp (Sikadur-752) để hàn gắn liền khối bê tông.\n- Mẹo tiết kiệm: Xử lý sớm ngay khi vết nứt còn nhỏ sẽ giảm 60–70% chi phí so với để thấm nước làm gỉ cốt thép.`;
+    } else if (q.includes('thấm') || q.includes('dột') || q.includes('mái') || q.includes('vệ sinh')) {
+      simReply = `- Nguyên nhân thấm phổ biến: Nứt sàn bê tông do co ngót nhiệt, hỏng lớp chống thấm cổ ống xuyên sàn hoặc chân tường tiếp giáp hộp kỹ thuật.\n- Quy trình xử lý chuẩn: Đục bỏ lớp gạch/vữa yếu tới sàn bê tông gốc, mở rộng cổ ống rót vữa không co ngót SikaGrout 214, quét tối thiểu 2 lớp chống thấm 2 thành phần SikaTop Seal-107 (vén chân tường cao ≥ 20 cm), ngâm thử nước 48 giờ rồi mới lát gạch hoàn thiện.`;
+    } else {
+      simReply = `- Nguyên tắc chẩn đoán vết nứt theo TCVN 5574:2018: Xác định vị trí (kết cấu chịu lực hay tường ngăn), hướng vết nứt (xiên 45°, đứng giữa nhịp hay chân chim) và đo bề rộng vết nứt acrc (giới hạn thường ≤ 0.3 mm).\n- Phác đồ chung: Nứt bề mặt dùng keo đàn hồi + lưới thủy tinh; nứt kết cấu dùng bơm keo Epoxy (Sikadur-752) và gia cường sợi Carbon CFRP khi suy giảm khả năng chịu lực.\n- Mẹo: Bạn có thể kết nối Gemini API Key để Bác sĩ Công trình AI phân tích sâu đúng từng câu hỏi hoặc chẩn đoán trực tiếp trên ảnh chụp thực tế.`;
+    }
+    const target = document.getElementById(loadingId);
+    if (target) {
+      target.className = 'pt-1';
+      target.innerHTML = formatAIResponseHTML(simReply);
+    }
+    thread.scrollTop = thread.scrollHeight;
+    return;
+  }
 
-  const prompt = `Bạn là Tiến sĩ Kỹ thuật Xây dựng, Bác sĩ Công trình chuyên kiểm định và sửa chữa kết cấu tại Việt Nam.
-${contextStr}
-Hãy trả lời câu hỏi tiếp theo của người dùng thật rõ ràng, bám sát TCVN 5574:2018 và tình trạng thực tế trong ảnh. Dùng dấu gạch đầu dòng (-), không dùng dấu (*), không dùng cú pháp LaTeX $...$, mỗi ý và mỗi câu hoàn chỉnh xuống dòng riêng rõ ràng.
+  let prompt = '';
+  if (hasImage) {
+    const summaryText = AppState.lastCrackAnalysisSummary
+      ? `Kết quả chẩn đoán bệnh học công trình trước đó của bức ảnh: ${AppState.lastCrackAnalysisSummary}`
+      : 'Người dùng đã tải ảnh vết nứt/hư hỏng công trình đính kèm.';
+    prompt = `Bạn là Tiến sĩ Kỹ thuật Xây dựng, Bác sĩ Công trình chuyên kiểm định và sửa chữa kết cấu tại Việt Nam.
+QUY TẮC BẮT BUỘC: Người dùng ĐÃ tải lên bức ảnh hư hỏng công trình đính kèm.
+${summaryText}
+Hãy trả lời câu hỏi của người dùng BÁM SÁT 100% đúng bức ảnh đính kèm, phác đồ chẩn đoán trên và TCVN 5574:2018, KHÔNG suy diễn chệch hướng sang sự cố khác không có trong ảnh.
+Dùng dấu gạch đầu dòng (-), không dùng dấu (*), không dùng cú pháp LaTeX $...$, mỗi ý và mỗi câu hoàn chỉnh xuống dòng riêng rõ ràng.
 Câu hỏi của người dùng: "${question}"`;
+  } else {
+    prompt = `Bạn là Tiến sĩ Kỹ thuật Xây dựng, Bác sĩ Công trình chuyên kiểm định, chẩn đoán bệnh học và sửa chữa kết cấu tại Việt Nam (am hiểu TCVN 5574:2018).
+QUY TẮC BẮT BUỘC: Người dùng CHƯA tải ảnh lên và đang đặt câu hỏi tư vấn trực tiếp bằng văn bản. TUYỆT ĐỐI KHÔNG yêu cầu người dùng phải tải ảnh lên mới trả lời — hãy trả lời thẳng, rõ ràng, đúng chuyên môn xây dựng và đưa ra hướng xử lý thực tế ngay cho câu hỏi này.
+Dùng dấu gạch đầu dòng (-), không dùng dấu (*), không dùng cú pháp LaTeX $...$, mỗi ý và mỗi câu hoàn chỉnh xuống dòng riêng rõ ràng.
+Câu hỏi của người dùng: "${question}"`;
+  }
 
   try {
-    const reply = await callGeminiAPI(prompt, AppState.uploadedCrackBase64 || null, AppState.uploadedCrackMime || 'image/jpeg');
+    const reply = await callGeminiAPI(prompt, hasImage ? AppState.uploadedCrackBase64 : null, AppState.uploadedCrackMime || 'image/jpeg');
     const target = document.getElementById(loadingId);
     if (target) {
       target.className = 'pt-1';
@@ -2081,7 +2658,7 @@ Câu hỏi của người dùng: "${question}"`;
   } catch (err) {
     const target = document.getElementById(loadingId);
     if (target) {
-      target.className = 'text-xs text-rose-300';
+      target.className = 'text-xs text-rose-700';
       target.textContent = `❌ Lỗi trả lời: ${err.message}`;
     }
   }
@@ -2142,22 +2719,39 @@ async function generateAndDownloadPDF() {
     statusEl.className = 'text-xs font-semibold p-3 rounded-xl bg-sky-500/15 border border-sky-500/30 text-sky-300';
   }
 
-  const today = new Date().toLocaleDateString('vi-VN');
+  const now = new Date();
+  const dd = String(now.getDate()).padStart(2, '0');
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const yyyy = now.getFullYear();
+  const docCode = `${dd}${mm}/HSKT-KXD`;
+
   const escapePdf = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const stripDarkHtml = (elId) => {
+  const cleanText = (elId, fallback = 'Chưa có dữ liệu.') => {
     const el = document.getElementById(elId);
-    if (!el) return '<p style="color:#64748b;">Chưa có dữ liệu.</p>';
-    return el.innerText.replace(/\n+/g, '<br>');
+    if (!el) return fallback;
+    const lines = el.innerText.split('\n').map(l => l.trim()).filter(Boolean);
+    return lines.length ? lines.map(escapePdf).join('<br>') : fallback;
   };
 
   let sectionsHtml = '';
 
-  // 1. DỰ TOÁN & VẬT LIỆU XANH
+  // =========================================================================
+  // PHẦN I. KHÁI TOÁN CHI PHÍ, KỸ THUẬT & BÓC TÁCH KHỐI LƯỢNG (TT 12/2021/TT-BXD)
+  // =========================================================================
   if (selected.includes('estimator')) {
+    const pType = document.getElementById('est-type')?.selectedOptions?.[0]?.text || 'Nhà phố hiện đại';
     const area = document.getElementById('est-area')?.value || '--';
     const floors = document.getElementById('est-floors')?.value || '--';
+    const floorH = document.getElementById('est-floor-h')?.value || '3.6';
+    const basement = document.getElementById('est-basement')?.selectedOptions?.[0]?.text || 'Không có tầng hầm';
     const found = document.getElementById('est-foundation')?.selectedOptions?.[0]?.text || '--';
     const roof = document.getElementById('est-roof')?.selectedOptions?.[0]?.text || '--';
+    const conc = document.getElementById('est-concrete')?.selectedOptions?.[0]?.text || 'B22.5';
+    const steelGrade = document.getElementById('est-steel')?.selectedOptions?.[0]?.text || 'CB400-V';
+    const region = document.getElementById('est-region')?.selectedOptions?.[0]?.text || 'Đà Nẵng';
+    const pkg = document.getElementById('est-package')?.selectedOptions?.[0]?.text || '--';
+    const isEco = document.getElementById('est-eco')?.checked;
+
     const totalCost = document.getElementById('out-total-cost')?.textContent || '--';
     const builtArea = document.getElementById('out-built-area')?.textContent || '--';
     const rawCost = document.getElementById('out-raw-cost')?.textContent || '--';
@@ -2168,147 +2762,408 @@ async function generateAndDownloadPDF() {
     const brick = document.getElementById('mat-brick')?.textContent || '--';
     const co2 = document.getElementById('eco-co2')?.textContent || '--';
     const elec = document.getElementById('eco-elec')?.textContent || '--';
-    const aiAdvice = stripDarkHtml('est-ai-response');
+
+    // Trích xuất sạch từng dòng bảng BOQ (12 hạng mục: Vật liệu, Nhân công, Máy thi công)
+    let boqRowsHtml = '';
+    const boqBody = document.getElementById('boq-detail-body');
+    if (boqBody) {
+      const trs = Array.from(boqBody.querySelectorAll('tr'));
+      boqRowsHtml = trs.map(tr => {
+        const tds = Array.from(tr.querySelectorAll('td'));
+        if (tds.length === 6) {
+          return `
+            <tr style="page-break-inside:avoid;">
+              <td class="td-c" style="font-weight:700; width:10%;">${escapePdf(tds[0].innerText.trim())}</td>
+              <td class="td-l" style="width:42%;">${escapePdf(tds[1].innerText.trim())}</td>
+              <td class="td-c" style="width:9%;">${escapePdf(tds[2].innerText.trim())}</td>
+              <td class="td-r" style="width:11%;">${escapePdf(tds[3].innerText.trim())}</td>
+              <td class="td-r" style="width:13%;">${escapePdf(tds[4].innerText.trim())}</td>
+              <td class="td-r" style="font-weight:700; width:15%;">${escapePdf(tds[5].innerText.trim())}</td>
+            </tr>
+          `;
+        } else if (tds.length >= 2) {
+          const label = escapePdf(tds[0].innerText.trim());
+          const val = escapePdf(tds[tds.length - 1].innerText.trim());
+          const isTotal = label.toUpperCase().includes('TỔNG');
+          return `
+            <tr style="page-break-inside:avoid; background:${isTotal ? '#f8f0f1' : '#f8fafc'};">
+              <td colspan="5" class="td-r" style="font-weight:700; ${isTotal ? 'color:#65121b; font-size:11.5px;' : ''}">${label}</td>
+              <td class="td-r" style="font-weight:700; ${isTotal ? 'color:#65121b; font-size:11.5px;' : ''}">${val}</td>
+            </tr>
+          `;
+        }
+        return '';
+      }).join('');
+    }
 
     sectionsHtml += `
-      <div style="margin-bottom:16px;">
-        <h2 style="font-size:13px; font-weight:800; color:#65121b; border-bottom:2px solid #65121b; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase; page-break-after:avoid;">
-          1. DỰ TOÁN CHI PHÍ &amp; TỐI ƯU VẬT LIỆU XANH
-        </h2>
-        <p style="font-size:11px; margin:0 0 8px 0; line-height:1.45;">
-          <strong>Thông số đầu vào:</strong> Diện tích ${escapePdf(area)} m²/sàn • Quy mô ${escapePdf(floors)} tầng • ${escapePdf(found)} • ${escapePdf(roof)}
-        </p>
-        <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:10px; table-layout:fixed; page-break-inside:avoid;">
-          <tr style="background:#f8fafc;">
-            <td style="border:1px solid #cbd5e1; padding:6px; width:24%;"><strong>Tổng diện tích quy đổi</strong></td>
-            <td style="border:1px solid #cbd5e1; padding:6px; width:26%;">${escapePdf(builtArea)}</td>
-            <td style="border:1px solid #cbd5e1; padding:6px; width:24%;"><strong>Tổng kinh phí dự toán</strong></td>
-            <td style="border:1px solid #cbd5e1; padding:6px; width:26%; color:#b45309; font-weight:800;">${escapePdf(totalCost)}</td>
+      <div class="pdf-section">
+        <h2 class="pdf-h2">PHẦN I. THÔNG SỐ KỸ THUẬT, KHÁI TOÁN CHI PHÍ &amp; BÓC TÁCH KHỐI LƯỢNG (TT 12/2021/TT-BXD)</h2>
+
+        <h3 class="pdf-h3">1.1. Quy mô và Thông số kỹ thuật đầu vào</h3>
+        <table class="pdf-table">
+          <tr>
+            <td class="td-k" style="width:24%;">Loại công trình</td>
+            <td class="td-l" style="width:26%;">${escapePdf(pType)}</td>
+            <td class="td-k" style="width:24%;">Khu vực thi công</td>
+            <td class="td-l" style="width:26%;">${escapePdf(region)}</td>
           </tr>
           <tr>
-            <td style="border:1px solid #cbd5e1; padding:6px;">Phần thô &amp; Nhân công</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">${escapePdf(rawCost)}</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">Hoàn thiện &amp; Điện nước</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">${escapePdf(finishCost)}</td>
-          </tr>
-          <tr style="background:#f8fafc;">
-            <td style="border:1px solid #cbd5e1; padding:6px;">Bê tông thương phẩm</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">${escapePdf(concrete)}</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">Cốt thép chịu lực</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">${escapePdf(steel)}</td>
+            <td class="td-k">Diện tích 1 sàn / Số tầng</td>
+            <td class="td-l">${escapePdf(area)} m² × ${escapePdf(floors)} tầng (H<sub>t</sub> = ${escapePdf(floorH)} m)</td>
+            <td class="td-k">Tầng hầm / Bán hầm</td>
+            <td class="td-l">${escapePdf(basement)}</td>
           </tr>
           <tr>
-            <td style="border:1px solid #cbd5e1; padding:6px;">Xi măng xây trát</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">${escapePdf(cement)}</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">Khối xây tường</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;">${escapePdf(brick)}</td>
+            <td class="td-k">Giải pháp móng</td>
+            <td class="td-l">${escapePdf(found)}</td>
+            <td class="td-k">Kết cấu mái</td>
+            <td class="td-l">${escapePdf(roof)}</td>
           </tr>
-          <tr style="background:#ecfdf5;">
-            <td style="border:1px solid #cbd5e1; padding:6px;"><strong>Giảm phát thải Carbon</strong></td>
-            <td style="border:1px solid #cbd5e1; padding:6px; color:#047857; font-weight:700;">${escapePdf(co2)}</td>
-            <td style="border:1px solid #cbd5e1; padding:6px;"><strong>Điện làm mát tiết kiệm</strong></td>
-            <td style="border:1px solid #cbd5e1; padding:6px; color:#0369a1; font-weight:700;">${escapePdf(elec)}</td>
+          <tr>
+            <td class="td-k">Cấp bê tông / Mác thép</td>
+            <td class="td-l">${escapePdf(conc)} / ${escapePdf(steelGrade)}</td>
+            <td class="td-k">Gói hoàn thiện / Vật liệu</td>
+            <td class="td-l">${escapePdf(pkg)} (${isEco ? 'Vật liệu xanh EcoBuild' : 'Vật liệu truyền thống'})</td>
           </tr>
         </table>
-        <div style="background:#f8fafc; border-left:3px solid #d97706; padding:8px 10px; font-size:11px; line-height:1.55; word-wrap:break-word;">
-          <strong>Phân tích &amp; Khuyến nghị từ AI:</strong><br>${aiAdvice}
-        </div>
+
+        <h3 class="pdf-h3">1.2. Tổng hợp Kinh phí Dự toán &amp; Chỉ tiêu Kinh tế – Kỹ thuật</h3>
+        <table class="pdf-table">
+          <tr>
+            <td class="td-k" style="width:25%;">Tổng diện tích quy đổi</td>
+            <td class="td-l" style="width:25%; font-weight:700;">${escapePdf(builtArea)}</td>
+            <td class="td-k" style="width:25%;">Tổng mức đầu tư dự kiến</td>
+            <td class="td-l" style="width:25%; font-weight:700; color:#65121b;">${escapePdf(totalCost)}</td>
+          </tr>
+          <tr>
+            <td class="td-k">Chi phí Phần thô &amp; Nhân công</td>
+            <td class="td-l">${escapePdf(rawCost)}</td>
+            <td class="td-k">Chi phí Hoàn thiện &amp; MEP</td>
+            <td class="td-l">${escapePdf(finishCost)}</td>
+          </tr>
+          <tr>
+            <td class="td-k">Bê tông kết cấu</td>
+            <td class="td-l">${escapePdf(concrete)}</td>
+            <td class="td-k">Cốt thép chịu lực</td>
+            <td class="td-l">${escapePdf(steel)}</td>
+          </tr>
+          <tr>
+            <td class="td-k">Xi măng xây trát</td>
+            <td class="td-l">${escapePdf(cement)}</td>
+            <td class="td-k">Khối xây tường</td>
+            <td class="td-l">${escapePdf(brick)}</td>
+          </tr>
+          <tr>
+            <td class="td-k">Giảm phát thải Carbon (CO₂)</td>
+            <td class="td-l" style="font-weight:700; color:#047857;">${escapePdf(co2)}</td>
+            <td class="td-k">Tiết kiệm điện làm mát</td>
+            <td class="td-l" style="font-weight:700; color:#0369a1;">${escapePdf(elec)}</td>
+          </tr>
+        </table>
+
+        ${boqRowsHtml ? `
+          <h3 class="pdf-h3">1.3. Bảng Bóc tách Khối lượng &amp; Dự toán Chi tiết (BOQ – ĐVT: VNĐ)</h3>
+          <table class="pdf-table">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th class="th-c">Mã CT</th>
+                <th class="th-l">Hạng mục Công tác &amp; Quy cách Kỹ thuật</th>
+                <th class="th-c">ĐVT</th>
+                <th class="th-r">Khối lượng</th>
+                <th class="th-r">Đơn giá (đ)</th>
+                <th class="th-r">Thành tiền (đ)</th>
+              </tr>
+            </thead>
+            <tbody>${boqRowsHtml}</tbody>
+          </table>
+        ` : ''}
       </div>
     `;
   }
 
-  // 2. KIỂM TRA KẾT CẤU & TRA CỨU TCVN
+  // =========================================================================
+  // PHẦN II. KIỂM TRA KẾT CẤU & ÁP DỤNG TIÊU CHUẨN XÂY DỰNG VIỆT NAM (TCVN)
+  // =========================================================================
   if (selected.includes('tcvn')) {
-    const checkHtml = stripDarkHtml('tcvn-check-result');
-    const qaHtml = stripDarkHtml('tcvn-chat-output');
+    // 2.1. Tính lại chính xác số liệu Kiểm tra Tiết diện & Bảo vệ
+    const spanM = parseFloat(document.getElementById('chk-span')?.value) || 6.0;
+    const beamH = parseFloat(document.getElementById('chk-beam-h')?.value) || 500;
+    const slabH = parseFloat(document.getElementById('chk-slab-h')?.value) || 120;
+    const coverMm = parseFloat(document.getElementById('chk-cover')?.value) || 25;
+    const env = document.getElementById('chk-env')?.value || 'indoor';
+    const envName = document.getElementById('chk-env')?.selectedOptions?.[0]?.text || 'Trong nhà';
+
+    const minBeamH = Math.round((spanM * 1000) / 12);
+    const maxBeamH = Math.round((spanM * 1000) / 8);
+    const minCover = env === 'indoor' ? 25 : env === 'outdoor' ? 30 : env === 'foundation' ? 40 : 50;
+    const minSlabH = Math.max(100, Math.round((spanM * 1000) / 45));
+
+    const beamOk = beamH >= minBeamH;
+    const coverOk = coverMm >= minCover;
+    const slabOk = slabH >= minSlabH;
+
+    // 2.2. Số liệu Tính cốt thép Dầm chịu uốn (TCVN 5574:2018)
+    const rcM = parseFloat(document.getElementById('rc-moment')?.value) || 140;
+    const rcB = parseFloat(document.getElementById('rc-b')?.value) || 250;
+    const rcH = parseFloat(document.getElementById('rc-h')?.value) || 500;
+    const rcA = parseFloat(document.getElementById('rc-a')?.value) || 40;
+    const rcConc = document.getElementById('rc-concrete')?.value || 'B25';
+    const rcSteel = document.getElementById('rc-steel')?.value || 'CB400-V';
+    const rbMap = { B20: 11.5, 'B22.5': 13.0, B25: 14.5, B30: 17.0, B35: 19.5 };
+    const rsMap = { 'CB300-V': 260, 'CB400-V': 350, 'CB500-V': 435 };
+    const xiRMap = { 'CB300-V': 0.583, 'CB400-V': 0.533, 'CB500-V': 0.493 };
+    const Rb = rbMap[rcConc] || 14.5;
+    const Rs = rsMap[rcSteel] || 350;
+    const xiR = xiRMap[rcSteel] || 0.533;
+    const alphaR = xiR * (1 - 0.5 * xiR);
+    const h0 = rcH - rcA;
+    const alphaM = (rcM * 1e6) / (Rb * rcB * h0 * h0);
+    let rebarSummary = '';
+    if (alphaM > alphaR) {
+      const hSug = Math.ceil((Math.sqrt((rcM * 1e6) / (alphaR * Rb * rcB)) + rcA) / 50) * 50;
+      rebarSummary = `KHÔNG ĐẠT (αm = ${alphaM.toFixed(3)} > αR = ${alphaR.toFixed(3)}) — Nguy cơ phá hoại giòn, cần tăng h ≥ ${hSug} mm`;
+    } else {
+      const xi = 1 - Math.sqrt(Math.max(0, 1 - 2 * alphaM));
+      const AsDesign = Math.max((xi * Rb * rcB * h0) / Rs, 0.001 * rcB * h0);
+      const mu = (AsDesign / (rcB * h0)) * 100;
+      rebarSummary = `ĐẠT (αm = ${alphaM.toFixed(3)} ≤ αR = ${alphaR.toFixed(3)}) • As = ${Math.round(AsDesign)} mm² (${(AsDesign / 100).toFixed(2)} cm²) • μ = ${mu.toFixed(2)}%`;
+    }
+
+    // 2.3. Số liệu Neo & Nối chồng (TCVN 5574:2018)
+    const ancD = parseFloat(document.getElementById('anc-dia')?.value) || 18;
+    const ancConc = document.getElementById('anc-concrete')?.value || 'B25';
+    const ancSteel = document.getElementById('anc-steel')?.value || 'CB400-V';
+    const ancStress = document.getElementById('anc-stress')?.value || 'tension';
+    const ancRatio = document.getElementById('anc-ratio')?.value || '50';
+    const rbtMap = { B15: 0.75, B20: 0.90, 'B22.5': 0.98, B25: 1.05, B30: 1.15, B35: 1.30 };
+    const rsAncMap = { 'CB240-T': 210, 'CB300-V': 260, 'CB400-V': 350, 'CB500-V': 435 };
+    const Rbt = rbtMap[ancConc] || 1.05;
+    const RsAnc = rsAncMap[ancSteel] || 350;
+    const Rbond = (ancSteel === 'CB240-T' ? 1.5 : 2.5) * Rbt;
+    const l0an = (RsAnc * ancD) / (4 * Rbond);
+    const lan = Math.ceil(Math.max((ancStress === 'tension' ? 1.0 : 0.75) * l0an, 15 * ancD, 200) / 10) * 10;
+    const llap = Math.ceil(Math.max((ancStress === 'compression' ? 0.9 : (ancRatio === '100' ? 2.0 : 1.2)) * l0an, 20 * ancD, 250) / 10) * 10;
+
+    // 2.4. Số liệu Tải trọng (TCVN 2737:2023), Nền móng (TCVN 9362), Động đất & PCCC
+    const roomLabel = document.getElementById('load-room-type')?.selectedOptions?.[0]?.text || '--';
+    const windZone = document.getElementById('wind-zone')?.selectedOptions?.[0]?.text || 'Vùng III';
+    const windTer = document.getElementById('wind-terrain')?.value || 'B';
+    const windH = document.getElementById('wind-height')?.value || '15';
+    const fndN = document.getElementById('fnd-load')?.value || '65';
+    const fndR0 = document.getElementById('fnd-r0')?.value || '180';
+    const fndHm = document.getElementById('fnd-depth')?.value || '1.6';
+    const cityLabel = document.getElementById('seis-city')?.selectedOptions?.[0]?.text || 'TP. Đà Nẵng';
+    const pcccLabel = document.getElementById('pccc-height')?.selectedOptions?.[0]?.text || '--';
+
+    const qaEl = document.getElementById('tcvn-chat-output');
+    const qaText = qaEl && qaEl.innerText.trim() ? cleanText('tcvn-chat-output') : '';
+
     sectionsHtml += `
-      <div style="margin-bottom:16px;">
-        <h2 style="font-size:13px; font-weight:800; color:#65121b; border-bottom:2px solid #65121b; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase; page-break-after:avoid;">
-          2. KIỂM TRA KẾT CẤU &amp; TRA CỨU TIÊU CHUẨN XÂY DỰNG (TCVN)
-        </h2>
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:8px 10px; font-size:11px; line-height:1.55; margin-bottom:8px; word-wrap:break-word;">
-          <strong>Kết quả kiểm tra nhanh tiết diện (TCVN 5574:2018):</strong><br>${checkHtml}
-        </div>
-        <div style="background:#fffbeb; border:1px solid #fcd34d; padding:8px 10px; font-size:11px; line-height:1.55; word-wrap:break-word;">
-          <strong>Nội dung tra cứu tiêu chuẩn gần nhất:</strong><br>${qaHtml}
-        </div>
+      <div class="pdf-section">
+        <h2 class="pdf-h2">PHẦN II. KIỂM TRA KẾT CẤU &amp; ÁP DỤNG TIÊU CHUẨN XÂY DỰNG VIỆT NAM (TCVN)</h2>
+
+        <h3 class="pdf-h3">2.1. Kiểm tra sơ bộ Tiết diện &amp; Lớp bê tông bảo vệ (TCVN 5574:2018)</h3>
+        <p class="pdf-note">Điều kiện làm việc: ${escapePdf(envName)} • Nhịp tính toán L = ${spanM} m.</p>
+        <table class="pdf-table">
+          <thead>
+            <tr style="background:#f1f5f9;">
+              <th class="th-c" style="width:7%;">STT</th>
+              <th class="th-l" style="width:28%;">Nội dung kiểm tra</th>
+              <th class="th-c" style="width:15%;">Giá trị chọn</th>
+              <th class="th-c" style="width:18%;">Yêu cầu TCVN</th>
+              <th class="th-l" style="width:32%;">Kết luận &amp; Hướng xử lý</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-c">1</td>
+              <td class="td-l">Chiều cao dầm chính (h)</td>
+              <td class="td-c" style="font-weight:700;">${beamH} mm</td>
+              <td class="td-c">${minBeamH} – ${maxBeamH} mm</td>
+              <td class="td-l" style="color:${beamOk ? '#047857' : '#b91c1c'}; font-weight:700;">${beamOk ? 'ĐẠT yêu cầu độ cứng' : `CHƯA ĐẠT — Tăng h ≥ ${Math.ceil(minBeamH / 50) * 50} mm`}</td>
+            </tr>
+            <tr>
+              <td class="td-c">2</td>
+              <td class="td-l">Lớp bê tông bảo vệ (c<sub>0</sub>)</td>
+              <td class="td-c" style="font-weight:700;">${coverMm} mm</td>
+              <td class="td-c">≥ ${minCover} mm (Bảng 19)</td>
+              <td class="td-l" style="color:${coverOk ? '#047857' : '#b91c1c'}; font-weight:700;">${coverOk ? 'ĐẠT TCVN 5574:2018' : `VI PHẠM — Tăng c₀ ≥ ${minCover} mm`}</td>
+            </tr>
+            <tr>
+              <td class="td-c">3</td>
+              <td class="td-l">Chiều dày bản sàn (h<sub>s</sub>)</td>
+              <td class="td-c" style="font-weight:700;">${slabH} mm</td>
+              <td class="td-c">≥ ${minSlabH} mm</td>
+              <td class="td-l" style="color:${slabOk ? '#047857' : '#b45309'}; font-weight:700;">${slabOk ? 'ĐẠT yêu cầu hạn chế võng' : `LƯU Ý — Tăng hₛ ≥ ${Math.ceil(minSlabH / 10) * 10} mm hoặc thêm dầm phụ`}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3 class="pdf-h3">2.2. Tính toán Cốt thép Dầm, Chiều dài Neo &amp; Nối chồng (TCVN 5574:2018)</h3>
+        <table class="pdf-table">
+          <tr>
+            <td class="td-k" style="width:28%;">Cốt thép Dầm chịu uốn</td>
+            <td class="td-l" style="width:72%;">
+              Tiết diện b×h = ${rcB}×${rcH} mm (a = ${rcA} mm) • Bê tông ${rcConc} • Thép ${rcSteel} • Mô-men M = ${rcM} kN·m.<br>
+              <strong>Kết quả:</strong> ${rebarSummary}
+            </td>
+          </tr>
+          <tr>
+            <td class="td-k">Neo &amp; Nối chồng cốt thép</td>
+            <td class="td-l">
+              Thép Ø${ancD} ${ancSteel} • Bê tông ${ancConc} • ${ancStress === 'tension' ? 'Vùng chịu kéo' : 'Vùng chịu nén'} • Tỷ lệ nối ${ancRatio}%/mặt cắt.<br>
+              <strong>Kết quả:</strong> l<sub>0,an</sub> = ${Math.round(l0an)} mm • <strong>l<sub>an</sub> = ${lan} mm (≈ ${Math.ceil(lan / ancD)}d)</strong> • <strong>l<sub>lap</sub> = ${llap} mm (≈ ${Math.ceil(llap / ancD)}d)</strong>.
+            </td>
+          </tr>
+        </table>
+
+        <h3 class="pdf-h3">2.3. Tải trọng (TCVN 2737:2023), Nền móng (TCVN 9362), Động đất &amp; PCCC</h3>
+        <table class="pdf-table">
+          <tr>
+            <td class="td-k" style="width:28%;">Hoạt tải &amp; Tải trọng Gió</td>
+            <td class="td-l" style="width:72%;">
+              Công năng sàn: ${escapePdf(roomLabel)} (γ<sub>f</sub> = 1.3).<br>
+              Tải trọng gió: ${escapePdf(windZone)} • Địa hình dạng ${windTer} • Chiều cao z<sub>e</sub> = ${windH} m (γ<sub>f</sub> = 2.1 theo TCVN 2737:2023).
+            </td>
+          </tr>
+          <tr>
+            <td class="td-k">Nền móng, Động đất &amp; PCCC</td>
+            <td class="td-l">
+              Móng đơn sơ bộ: N = ${fndN} Tấn, R<sub>0</sub> = ${fndR0} kN/m², H<sub>m</sub> = ${fndHm} m.<br>
+              Khu vực động đất: ${escapePdf(cityLabel)} (TCVN 9386:2012) • Quy mô PCCC: ${escapePdf(pcccLabel)} (QCVN 06:2022/BXD).
+            </td>
+          </tr>
+        </table>
+
+        ${qaText ? `
+          <div class="pdf-card" style="margin-top:8px;">
+            <strong>Trích dẫn tra cứu tiêu chuẩn cùng AI gần nhất:</strong><br>${qaText}
+          </div>
+        ` : ''}
       </div>
     `;
   }
 
-  // 3. GIÁM SÁT AN TOÀN & NHẬT KÝ CÔNG TRƯỜNG
+  // =========================================================================
+  // PHẦN III. GIÁM SÁT AN TOÀN LAO ĐỘNG (QCVN 18:2021/BXD) & NHẬT KÝ CÔNG TRƯỜNG
+  // =========================================================================
   if (selected.includes('siteguard')) {
     const score = document.getElementById('site-score')?.textContent || '--';
     const risk = document.getElementById('site-risk-badge')?.textContent || '--';
     const workers = document.getElementById('site-workers')?.textContent || '--';
-    const vText = stripDarkHtml('site-violations-list');
-    const diaryText = stripDarkHtml('site-diary-box');
+    const vText = cleanText('site-violations-list', 'Chưa có dữ liệu kiểm tra ảnh hiện trường.');
+    const diaryText = cleanText('site-diary-box', 'Chưa có nhật ký công trường.');
     const imgHtml = AppState.uploadedSiteBase64
-      ? `<div style="text-align:center; margin:8px 0; page-break-inside:avoid;"><img src="${AppState.uploadedSiteBase64}" style="max-width:100%; max-height:210px; border:1px solid #cbd5e1; border-radius:6px;" /></div>`
+      ? `<div style="text-align:center; margin:8px 0; page-break-inside:avoid;"><img src="${AppState.uploadedSiteBase64}" style="max-width:100%; max-height:200px; border:1px solid #94a3b8;" /></div>`
       : '';
 
     sectionsHtml += `
-      <div style="margin-bottom:16px;">
-        <h2 style="font-size:13px; font-weight:800; color:#65121b; border-bottom:2px solid #65121b; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase; page-break-after:avoid;">
-          3. GIÁM SÁT AN TOÀN LAO ĐỘNG &amp; NHẬT KÝ CÔNG TRƯỜNG
-        </h2>
-        <p style="font-size:11px; margin:0 0 6px 0; line-height:1.45;">
-          <strong>Điểm An toàn:</strong> ${escapePdf(score)} • <strong>Mức độ rủi ro:</strong> ${escapePdf(risk)} • <strong>Bảo hộ PPE:</strong> ${escapePdf(workers)}
-        </p>
+      <div class="pdf-section">
+        <h2 class="pdf-h2">PHẦN III. GIÁM SÁT AN TOÀN LAO ĐỘNG (QCVN 18:2021/BXD) &amp; NHẬT KÝ CÔNG TRƯỜNG</h2>
+        <table class="pdf-table">
+          <tr>
+            <td class="td-k" style="width:20%;">Điểm An toàn HSE</td>
+            <td class="td-c" style="width:15%; font-weight:700;">${escapePdf(score)}</td>
+            <td class="td-k" style="width:18%;">Mức độ rủi ro</td>
+            <td class="td-c" style="width:17%; font-weight:700;">${escapePdf(risk)}</td>
+            <td class="td-k" style="width:15%;">Bảo hộ PPE</td>
+            <td class="td-c" style="width:15%;">${escapePdf(workers)}</td>
+          </tr>
+        </table>
         ${imgHtml}
-        <div style="background:#fef2f2; border:1px solid #fecaca; padding:8px 10px; font-size:11px; line-height:1.55; margin-bottom:8px; word-wrap:break-word;">
-          <strong>Các vùng nguy hiểm &amp; vi phạm phát hiện:</strong><br>${vText}
+        <div class="pdf-card" style="margin-top:6px;">
+          <strong>1. Kết quả kiểm tra vi phạm &amp; vùng nguy hiểm:</strong><br>${vText}
         </div>
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:8px 10px; font-size:11px; line-height:1.55; word-wrap:break-word;">
-          ${diaryText}
+        <div class="pdf-card" style="margin-top:6px;">
+          <strong>2. Nhật ký thi công &amp; biên bản nhắc nhở an toàn:</strong><br>${diaryText}
         </div>
       </div>
     `;
   }
 
-  // 4. BÁC SĨ CÔNG TRÌNH
+  // =========================================================================
+  // PHẦN IV. KIỂM ĐỊNH, CHẨN ĐOÁN BỆNH HỌC CÔNG TRÌNH & DỰ TOÁN SỬA CHỮA
+  // =========================================================================
   if (selected.includes('crackdoctor')) {
     const comp = document.getElementById('crack-component')?.textContent || '--';
     const type = document.getElementById('crack-type')?.textContent || '--';
     const width = document.getElementById('crack-width')?.textContent || '--';
     const sev = document.getElementById('crack-severity')?.textContent || '--';
-    const cause = stripDarkHtml('crack-cause');
-    const steps = stripDarkHtml('crack-steps');
-    const matsBody = document.getElementById('crack-materials')?.innerHTML || '';
+    const cause = cleanText('crack-cause', 'Chưa có dữ liệu chẩn đoán.');
+    const steps = cleanText('crack-steps', 'Chưa có phác đồ xử lý.');
     const imgHtml = AppState.uploadedCrackBase64
-      ? `<div style="text-align:center; margin:8px 0; page-break-inside:avoid;"><img src="${AppState.uploadedCrackBase64}" style="max-width:100%; max-height:210px; border:1px solid #cbd5e1; border-radius:6px;" /></div>`
+      ? `<div style="text-align:center; margin:8px 0; page-break-inside:avoid;"><img src="${AppState.uploadedCrackBase64}" style="max-width:100%; max-height:200px; border:1px solid #94a3b8;" /></div>`
       : '';
 
-    sectionsHtml += `
-      <div style="margin-bottom:16px;">
-        <h2 style="font-size:13px; font-weight:800; color:#65121b; border-bottom:2px solid #65121b; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase; page-break-after:avoid;">
-          4. BÁC SĨ CÔNG TRÌNH – CHẨN ĐOÁN VẾT NỨT &amp; ĐỊNH MỨC SỬA CHỮA
-        </h2>
-        ${imgHtml}
-        <p style="font-size:11px; margin:0 0 6px 0; line-height:1.5;">
-          <strong>Cấu kiện:</strong> ${escapePdf(comp)}<br>
-          <strong>Phân loại vết nứt:</strong> ${escapePdf(type)}<br>
-          <strong>Bề rộng ước tính:</strong> ${escapePdf(width)} • <strong>Mức độ an toàn:</strong> <span style="color:#be123c; font-weight:700;">${escapePdf(sev)}</span>
-        </p>
-        <div style="background:#f8fafc; border:1px solid #cbd5e1; padding:8px 10px; font-size:11px; line-height:1.55; margin-bottom:8px; word-wrap:break-word;">
-          <strong>Chẩn đoán nguyên nhân:</strong><br>${cause}<br><br>
-          <strong>Phác đồ xử lý &amp; gia cường:</strong><br>${steps}
-        </div>
-        <table style="width:100%; border-collapse:collapse; font-size:11px; color:#0f172a; page-break-inside:avoid;">
-          <thead>
-            <tr style="background:#f1f5f9;">
-              <th style="border:1px solid #cbd5e1; padding:6px; text-align:left;">Hạng mục vật tư / Hóa chất</th>
-              <th style="border:1px solid #cbd5e1; padding:6px; text-align:center;">Khối lượng</th>
-              <th style="border:1px solid #cbd5e1; padding:6px; text-align:right;">Thành tiền</th>
+    let repairRowsHtml = '';
+    const matsEl = document.getElementById('crack-materials');
+    if (matsEl) {
+      const trs = Array.from(matsEl.querySelectorAll('tr'));
+      repairRowsHtml = trs.map(tr => {
+        const tds = Array.from(tr.querySelectorAll('td'));
+        if (tds.length >= 3) {
+          return `
+            <tr style="page-break-inside:avoid;">
+              <td class="td-l">${escapePdf(tds[0].innerText.trim())}</td>
+              <td class="td-c">${escapePdf(tds[1].innerText.trim())}</td>
+              <td class="td-r" style="font-weight:700;">${escapePdf(tds[2].innerText.trim())}</td>
             </tr>
-          </thead>
-          <tbody>${matsBody.replace(/text-slate-\d+|text-amber-\d+|text-emerald-\d+|bg-slate-\d+\/\d+|border-slate-\d+/g, '')}</tbody>
+          `;
+        } else if (tds.length === 2) {
+          return `
+            <tr style="page-break-inside:avoid; background:#f8f0f1;">
+              <td colspan="2" class="td-r" style="font-weight:700; color:#65121b;">${escapePdf(tds[0].innerText.trim())}</td>
+              <td class="td-r" style="font-weight:700; color:#65121b;">${escapePdf(tds[1].innerText.trim())}</td>
+            </tr>
+          `;
+        }
+        return '';
+      }).join('');
+    }
+
+    sectionsHtml += `
+      <div class="pdf-section">
+        <h2 class="pdf-h2">PHẦN IV. KIỂM ĐỊNH BỆNH HỌC CÔNG TRÌNH &amp; DỰ TOÁN SỬA CHỮA</h2>
+        ${imgHtml}
+        <table class="pdf-table">
+          <tr>
+            <td class="td-k" style="width:22%;">Cấu kiện khảo sát</td>
+            <td class="td-l" style="width:28%;">${escapePdf(comp)}</td>
+            <td class="td-k" style="width:22%;">Phân loại vết nứt</td>
+            <td class="td-l" style="width:28%;">${escapePdf(type)}</td>
+          </tr>
+          <tr>
+            <td class="td-k">Bề rộng ước tính</td>
+            <td class="td-l">${escapePdf(width)}</td>
+            <td class="td-k">Mức độ an toàn</td>
+            <td class="td-l" style="font-weight:700; color:#b91c1c;">${escapePdf(sev)}</td>
+          </tr>
         </table>
+        <div class="pdf-card" style="margin-top:6px;">
+          <strong>Chẩn đoán nguyên nhân:</strong><br>${cause}<br><br>
+          <strong>Phác đồ xử lý &amp; gia cường đề xuất:</strong><br>${steps}
+        </div>
+        ${repairRowsHtml ? `
+          <h3 class="pdf-h3">Bảng Dự toán Vật tư &amp; Hóa chất Sửa chữa</h3>
+          <table class="pdf-table">
+            <thead>
+              <tr style="background:#f1f5f9;">
+                <th class="th-l">Hạng mục vật tư / Hóa chất</th>
+                <th class="th-c">Khối lượng</th>
+                <th class="th-r">Thành tiền (VNĐ)</th>
+              </tr>
+            </thead>
+            <tbody>${repairRowsHtml}</tbody>
+          </table>
+        ` : ''}
       </div>
     `;
   }
 
-  // 5. TỔNG QUAN DỰ ÁN
+  // =========================================================================
+  // PHẦN V. TỔNG HỢP CHỈ SỐ TOÀN DỰ ÁN
+  // =========================================================================
   if (selected.includes('dashboard')) {
     const kCost = document.getElementById('dash-kpi-cost')?.textContent || 'Chưa có dữ liệu';
     const kSafe = document.getElementById('dash-kpi-safety')?.textContent || 'Chưa có dữ liệu';
@@ -2316,40 +3171,64 @@ async function generateAndDownloadPDF() {
     const kStru = document.getElementById('dash-kpi-struct')?.textContent || 'Chưa có dữ liệu';
 
     sectionsHtml += `
-      <div style="margin-bottom:14px; page-break-inside:avoid;">
-        <h2 style="font-size:13px; font-weight:800; color:#65121b; border-bottom:2px solid #65121b; padding-bottom:4px; margin:0 0 8px 0; text-transform:uppercase;">
-          5. TỔNG HỢP CHỈ SỐ TOÀN DỰ ÁN
-        </h2>
-        <table style="width:100%; border-collapse:collapse; font-size:11px; table-layout:fixed;">
-          <tr style="background:#f8fafc;">
-            <th style="border:1px solid #cbd5e1; padding:6px;">Tổng mức đầu tư</th>
-            <th style="border:1px solid #cbd5e1; padding:6px;">Điểm An toàn</th>
-            <th style="border:1px solid #cbd5e1; padding:6px;">Giảm phát thải CO₂</th>
-            <th style="border:1px solid #cbd5e1; padding:6px;">Kết cấu &amp; TCVN</th>
-          </tr>
-          <tr>
-            <td style="border:1px solid #cbd5e1; padding:8px; text-align:center; font-weight:700;">${escapePdf(kCost)}</td>
-            <td style="border:1px solid #cbd5e1; padding:8px; text-align:center; font-weight:700;">${escapePdf(kSafe)}</td>
-            <td style="border:1px solid #cbd5e1; padding:8px; text-align:center; font-weight:700;">${escapePdf(kCarb)}</td>
-            <td style="border:1px solid #cbd5e1; padding:8px; text-align:center; font-weight:700;">${escapePdf(kStru)}</td>
-          </tr>
+      <div class="pdf-section" style="page-break-inside:avoid;">
+        <h2 class="pdf-h2">PHẦN V. TỔNG HỢP CHỈ SỐ KINH TẾ – KỸ THUẬT TOÀN DỰ ÁN</h2>
+        <table class="pdf-table">
+          <thead>
+            <tr style="background:#f1f5f9;">
+              <th class="th-c">Tổng mức đầu tư</th>
+              <th class="th-c">Điểm An toàn HSE</th>
+              <th class="th-c">Giảm phát thải CO₂</th>
+              <th class="th-c">Đánh giá Kết cấu &amp; TCVN</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-c" style="font-weight:700; padding:8px;">${escapePdf(kCost)}</td>
+              <td class="td-c" style="font-weight:700; padding:8px;">${escapePdf(kSafe)}</td>
+              <td class="td-c" style="font-weight:700; padding:8px;">${escapePdf(kCarb)}</td>
+              <td class="td-c" style="font-weight:700; padding:8px;">${escapePdf(kStru)}</td>
+            </tr>
+          </tbody>
         </table>
       </div>
     `;
   }
 
-  // Tạo vùng dựng PDF chuẩn bề rộng 700px (= 190mm khổ A4 trừ lề 10mm mỗi bên), KHÔNG bị dính scrollY/lệch phải!
+  // Dựng văn bản chuẩn thể thức Nhà nước (Nghị định 30/2020/NĐ-CP) — bề rộng 661px (= 175mm chuẩn A4 lề Trái 20mm, Phải 15mm)
   const pdfWrapper = document.createElement('div');
-  pdfWrapper.style.cssText = 'width:700px; box-sizing:border-box; background:#ffffff; color:#0f172a; padding:0; margin:0; font-family:Inter, Arial, sans-serif;';
+  pdfWrapper.id = 'pdf-render-sandbox';
+  pdfWrapper.style.cssText = 'width:661px; box-sizing:border-box; background:#ffffff; color:#0f172a; padding:0; margin:0; font-family:"Times New Roman", Times, serif; font-size:12px; line-height:1.45;';
   pdfWrapper.innerHTML = `
-    <div style="background:linear-gradient(90deg, #65121b 0%, #3a0a10 100%); color:#ffffff; padding:14px 18px; border-radius:8px; margin-bottom:14px;">
-      <div style="font-size:10px; font-weight:800; letter-spacing:1.2px; color:#e2b877; text-transform:uppercase;">ĐẠI HỌC DUY TÂN • KHOA XÂY DỰNG</div>
-      <div style="font-size:16px; font-weight:900; margin-top:4px; text-transform:uppercase; line-height:1.3;">${escapePdf(projectName)}</div>
-      <div style="font-size:10px; color:#fecdd3; margin-top:4px;">Ngày xuất hồ sơ: ${today} • Hệ thống Kiến Tạo Xây Dựng Số AI &amp; Quản Lý Công Trình Toàn Diện</div>
+    <style>
+      #pdf-render-sandbox, #pdf-render-sandbox * { box-sizing: border-box !important; max-width: 100% !important; background-image: none !important; font-family: "Times New Roman", Times, serif !important; }
+      #pdf-render-sandbox .pdf-section { margin-bottom: 14px; }
+      #pdf-render-sandbox .pdf-h2 { font-size: 13px; font-weight: 700; color: #65121b; border-bottom: 1.5px solid #65121b; padding-bottom: 3px; margin: 12px 0 8px 0; text-transform: uppercase; page-break-after: avoid; break-after: avoid; }
+      #pdf-render-sandbox .pdf-h3 { font-size: 12px; font-weight: 700; color: #0f172a; margin: 8px 0 4px 0; page-break-after: avoid; break-after: avoid; }
+      #pdf-render-sandbox .pdf-note { font-size: 11px; font-style: italic; color: #334155; margin: 0 0 5px 0; }
+      #pdf-render-sandbox .pdf-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 8px; }
+      #pdf-render-sandbox .pdf-table tr { page-break-inside: avoid; break-inside: avoid; }
+      #pdf-render-sandbox .th-c { border: 1px solid #475569; padding: 5px 4px; text-align: center; font-weight: 700; color: #0f172a; }
+      #pdf-render-sandbox .th-l { border: 1px solid #475569; padding: 5px 6px; text-align: left; font-weight: 700; color: #0f172a; }
+      #pdf-render-sandbox .th-r { border: 1px solid #475569; padding: 5px 6px; text-align: right; font-weight: 700; color: #0f172a; }
+      #pdf-render-sandbox .td-k { border: 1px solid #64748b; padding: 5px 6px; text-align: left; font-weight: 700; background: #f8fafc; color: #0f172a; vertical-align: top; }
+      #pdf-render-sandbox .td-l { border: 1px solid #64748b; padding: 5px 6px; text-align: left; color: #0f172a; vertical-align: top; }
+      #pdf-render-sandbox .td-c { border: 1px solid #64748b; padding: 5px 4px; text-align: center; color: #0f172a; vertical-align: top; }
+      #pdf-render-sandbox .td-r { border: 1px solid #64748b; padding: 5px 6px; text-align: right; color: #0f172a; vertical-align: top; }
+      #pdf-render-sandbox .pdf-card { border: 1px solid #94a3b8; background: #f8fafc; padding: 7px 9px; font-size: 11px; line-height: 1.5; color: #0f172a; page-break-inside: avoid; break-inside: avoid; }
+    </style>
+
+    <!-- TÊN HỒ SƠ KỸ THUẬT -->
+    <div style="text-align:center; margin:0 0 14px 0; padding-bottom:8px; border-bottom:2px double #65121b;">
+      <div style="font-size:15px; font-weight:700; text-transform:uppercase; color:#0f172a; letter-spacing:0.3px;">HỒ SƠ KỸ THUẬT &amp; THUYẾT MINH TÍNH TOÁN CÔNG TRÌNH</div>
+      <div style="font-size:12.5px; font-weight:700; color:#65121b; margin-top:3px;">${escapePdf(projectName)}</div>
+      <div style="font-size:10.5px; font-style:italic; color:#475569; margin-top:3px;">Ngày xuất hồ sơ: ${dd}/${mm}/${yyyy} • Hệ thống Kiến Tạo Xây Dựng Số AI – Khoa Xây Dựng, Đại Học Duy Tân</div>
     </div>
+
     ${sectionsHtml}
-    <div style="margin-top:16px; border-top:1px solid #cbd5e1; padding-top:8px; text-align:center; font-size:10px; color:#475569;">
-      © 2026 Kiến Tạo Xây Dựng Số AI • Khoa Xây Dựng • Đại Học Duy Tân (DTU)
+
+    <div style="margin-top:14px; border-top:1px solid #cbd5e1; padding-top:6px; text-align:center; font-size:10px; color:#64748b;">
+      © ${yyyy} Kiến Tạo Xây Dựng Số AI • Khoa Xây Dựng • Đại Học Duy Tân (DTU)
     </div>
   `;
 
@@ -2364,19 +3243,37 @@ async function generateAndDownloadPDF() {
   try {
     await html2pdf()
       .set({
-        margin: [10, 10, 10, 10],
+        margin: [15, 15, 15, 20], // Chuẩn Nghị định 30/2020/NĐ-CP: Trên 15, Phải 15, Dưới 15, Trái 20 (mm)
         filename: `${safeFileName}.pdf`,
-        image: { type: 'jpeg', quality: 0.96 },
+        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
+          x: 0,
+          y: 0,
           scrollX: 0,
           scrollY: 0,
-          windowWidth: 700
+          width: 661,
+          windowWidth: 661,
+          onclone: (clonedDoc) => {
+            clonedDoc.documentElement.style.cssText = 'margin:0 !important; padding:0 !important; width:661px !important; background:#ffffff !important; overflow:visible !important;';
+            clonedDoc.body.style.cssText = 'display:block !important; margin:0 !important; padding:0 !important; width:661px !important; background:#ffffff !important; overflow:visible !important; background-image:none !important;';
+            Array.from(clonedDoc.body.children).forEach(child => {
+              if (!child.classList || !child.classList.contains('html2pdf__overlay')) {
+                child.style.setProperty('display', 'none', 'important');
+              } else {
+                child.style.cssText = 'position:static !important; left:0 !important; top:0 !important; width:661px !important; height:auto !important; margin:0 !important; padding:0 !important; opacity:1 !important; overflow:visible !important; background:#ffffff !important;';
+                const innerContainer = child.querySelector('.html2pdf__container');
+                if (innerContainer) {
+                  innerContainer.style.cssText = 'position:static !important; left:0 !important; top:0 !important; width:661px !important; margin:0 !important; padding:0 !important;';
+                }
+              }
+            });
+          }
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['css', 'legacy'] }
+        pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.pdf-card', 'h2', 'h3'] }
       })
       .from(pdfWrapper)
       .save();
@@ -2417,6 +3314,11 @@ window.addEventListener('DOMContentLoaded', () => {
   updateDashboardOverview();
   calculateEstimation(false);
   checkStructureTCVN(false);
+  switchTcvnSubTab('beam');
+  calcBeamRebar();
+  calcAnchorLap();
+  calcLoads2737();
+  calcFoundationPccc();
   resetSiteGuardUI();
   resetCrackDoctorUI();
   askTCVNCopilot('Chiều dày lớp bê tông bảo vệ cốt thép theo TCVN 5574:2018 là bao nhiêu?');
