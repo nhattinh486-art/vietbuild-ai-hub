@@ -2,9 +2,16 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Trợ Lý AI Kỹ Sư Xây Dựng Toàn Diện | Khoa Xây Dựng - Đại Học Duy Tân (DTU)</title>
+  <!-- Hỗ trợ cài đặt ứng dụng PWA trên iOS & Android -->
+  <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/jpeg" href="logo-khoa-xay-dung-dtu.jpg" />
+  <link rel="apple-touch-icon" href="logo-khoa-xay-dung-dtu.jpg" />
+  <meta name="theme-color" content="#65121b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="DTU Xây Dựng AI" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -363,6 +370,10 @@
       <button type="button" onclick="openPdfExportModal()" class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-lg bg-[#7c1622] hover:bg-[#931c2a] text-xs font-semibold text-white border border-[#dfa860]/30 transition">
         <i data-lucide="file-down" class="w-3.5 h-3.5"></i>
         <span>Xuất Hồ sơ Kỹ thuật (.PDF)</span>
+      </button>
+      <button type="button" onclick="triggerMainInstallPWA()" class="w-full inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition">
+        <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+        <span>Cài App lên Điện thoại (iOS/Android)</span>
       </button>
     </div>
   </aside>
@@ -1813,6 +1824,32 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL HƯỚNG DẪN CÀI APP PWA LÊN ĐIỆN THOẠI (iOS & ANDROID) -->
+  <div id="main-install-pwa-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-5 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="font-extrabold text-sm text-slate-900 flex items-center gap-2">
+          <i data-lucide="smartphone" class="w-4 h-4 text-[#8b1e2b]"></i>
+          <span>Cài DTU Xây Dựng AI lên Điện thoại</span>
+        </div>
+        <button type="button" onclick="closeMainInstallModal()" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100">✕</button>
+      </div>
+      <div class="text-xs text-slate-600 space-y-3 leading-relaxed">
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 mb-1">Trên iPhone / iPad (Trình duyệt Safari):</div>
+          <div>1. Mở trang web này bằng <strong>Safari</strong>.</div>
+          <div>2. Bấm nút <strong>Chia sẻ</strong> (biểu tượng ô vuông có mũi tên chỉ lên ở thanh dưới).</div>
+          <div>3. Cuộn xuống chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong> → bấm <strong>Thêm</strong>.</div>
+        </div>
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 mb-1">Trên Android (Trình duyệt Chrome):</div>
+          <div>Bấm dấu <strong>⋮</strong> ở góc trên bên phải → chọn <strong>"Cài đặt ứng dụng"</strong> hoặc <strong>"Thêm vào màn hình chính"</strong>.</div>
+        </div>
+      </div>
+      <button type="button" onclick="closeMainInstallModal()" class="w-full py-2.5 rounded-xl btn-primary-dtu font-bold text-xs">Đã hiểu</button>
     </div>
   </div>
 

@@ -1,0 +1,25 @@
+{
+  "name": "Kiến Tạo Xây Dựng Số AI — Khoa Xây Dựng DTU",
+  "short_name": "DTU Xây Dựng AI",
+  "description": "Hệ thống Trợ lý AI Kỹ sư Xây dựng Toàn diện: Dự toán BOQ, Tra cứu TCVN, Giám sát An toàn HSE & Bác sĩ Công trình — Đại Học Duy Tân.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f6f8",
+  "theme_color": "#65121b",
+  "icons": [
+    {
+      "src": "logo-khoa-xay-dung-dtu.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo-khoa-xay-dung-dtu.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

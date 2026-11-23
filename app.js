@@ -3410,10 +3410,40 @@ window.addEventListener('focus', () => {
 });
 
 // ============================================================================
+// 11. HỖ TRỢ CÀI ĐẶT ỨNG DỤNG PWA TRÊN ĐIỆN THOẠI (iOS & ANDROID)
+// ============================================================================
+
+let mainDeferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  mainDeferredInstallPrompt = e;
+});
+
+async function triggerMainInstallPWA() {
+  closeMobileSidebar();
+  if (mainDeferredInstallPrompt) {
+    mainDeferredInstallPrompt.prompt();
+    await mainDeferredInstallPrompt.userChoice;
+    mainDeferredInstallPrompt = null;
+  } else {
+    document.getElementById('main-install-pwa-modal')?.classList.remove('hidden');
+    if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+  }
+}
+
+function closeMainInstallModal() {
+  document.getElementById('main-install-pwa-modal')?.classList.add('hidden');
+}
+
+// ============================================================================
 // INITIALIZE ON DOM READY
 // ============================================================================
 
 window.addEventListener('DOMContentLoaded', () => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
     lucide.createIcons();
   }
