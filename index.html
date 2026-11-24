@@ -8,9 +8,9 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/jpeg" href="logo-khoa-xay-dung-dtu.jpg" />
   <link rel="apple-touch-icon" href="logo-khoa-xay-dung-dtu.jpg" />
-  <meta name="theme-color" content="#65121b" />
+  <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="DTU Xây Dựng AI" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -250,6 +250,18 @@
     }
     #site-boxes-overlay .text-amber-300 {
       color: #fcd34d !important;
+    }
+
+    /* Chống bị thanh trạng thái (tai thỏ / Dynamic Island iOS) che mất nút 3 gạch & thanh Header khi cài PWA */
+    body {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    header.sticky {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem) !important;
+    }
+    #main-sidebar {
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     /* Nút hành động chính lịch sự, hiện đại */

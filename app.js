@@ -3508,6 +3508,46 @@ function closeMainInstallModal() {
   document.getElementById('main-install-pwa-modal')?.classList.add('hidden');
 }
 
+// Vuốt từ cạnh trái sang phải để mở thanh bên Sidebar trên điện thoại, vuốt ngược sang trái để đóng (vẫn giữ nút 3 gạch)
+(function initMobileSidebarSwipeGesture() {
+  let startX = 0;
+  let startY = 0;
+  let tracking = false;
+  let startedInScrollableTable = false;
+
+  document.addEventListener('touchstart', (e) => {
+    if (window.innerWidth >= 1024 || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    startX = t.clientX;
+    startY = t.clientY;
+    startedInScrollableTable = Boolean(e.target && e.target.closest && e.target.closest('.overflow-x-auto'));
+    const sidebar = document.getElementById('main-sidebar');
+    const isOpen = sidebar && !sidebar.classList.contains('-translate-x-full');
+    // Cho phép vuốt mở từ vùng bên trái (0..65px) hoặc vuốt đóng khi sidebar đang mở
+    tracking = isOpen || startX <= 65 || (!startedInScrollableTable && startX <= 110);
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (!tracking || window.innerWidth >= 1024 || !e.changedTouches || !e.changedTouches.length) return;
+    tracking = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    // Chỉ kích hoạt khi vuốt ngang rõ ràng (> 55px và ngang áp đảo dọc)
+    if (Math.abs(dx) < 55 || Math.abs(dx) < Math.abs(dy) * 1.4) return;
+
+    const sidebar = document.getElementById('main-sidebar');
+    if (!sidebar) return;
+    const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+    if (dx > 55 && !isOpen) {
+      if (typeof openMobileSidebar === 'function') openMobileSidebar();
+    } else if (dx < -55 && isOpen) {
+      if (typeof closeMobileSidebar === 'function') closeMobileSidebar();
+    }
+  }, { passive: true });
+})();
+
 // ============================================================================
 // INITIALIZE ON DOM READY
 // ============================================================================
