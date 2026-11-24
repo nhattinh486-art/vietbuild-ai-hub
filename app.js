@@ -248,7 +248,69 @@ function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
   return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(id));
 }
 
-async function callGeminiAPI(prompt, base64Image = null, mimeType = 'image/jpeg') {
+function parseGeminiJsonSafe(rawReply) {
+  if (!rawReply || typeof rawReply !== 'string') return null;
+  // Gỡ khung markdown ```json ... ``` nếu có
+  const cleaned = rawReply
+    .replace(/^\s*```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
+    .trim();
+
+  const tryParse = (str) => {
+    try {
+      return JSON.parse(str);
+    } catch (_) {
+      try {
+        // Sửa lỗi dấu phẩy thừa cuối mảng/object (, } hoặc , ])
+        const noTrailingComma = str.replace(/,\s*([}\]])/g, '$1');
+        return JSON.parse(noTrailingComma);
+      } catch (__) {
+        return null;
+      }
+    }
+  };
+
+  let parsed = tryParse(cleaned);
+  if (parsed && typeof parsed === 'object') return parsed;
+
+  const firstBrace = cleaned.indexOf('{');
+  const lastBrace = cleaned.lastIndexOf('}');
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    parsed = tryParse(cleaned.slice(firstBrace, lastBrace + 1));
+    if (parsed && typeof parsed === 'object') return parsed;
+  }
+
+  // Cứu hộ nếu JSON lỡ bị cắt giữa chừng: đóng nốt ngoặc còn thiếu
+  if (firstBrace !== -1) {
+    let slice = cleaned.slice(firstBrace);
+    // Cắt bỏ phần key/value dở dang sau dấu phẩy cuối cùng
+    const lastComma = slice.lastIndexOf(',');
+    if (lastComma > 0) {
+      const candidate = slice.slice(0, lastComma);
+      const stack = [];
+      let inStr = false;
+      let esc = false;
+      for (let i = 0; i < candidate.length; i++) {
+        const ch = candidate[i];
+        if (esc) { esc = false; continue; }
+        if (ch === '\\') { esc = true; continue; }
+        if (ch === '"') { inStr = !inStr; continue; }
+        if (inStr) continue;
+        if (ch === '{') stack.push('}');
+        else if (ch === '[') stack.push(']');
+        else if (ch === '}' || ch === ']') stack.pop();
+      }
+      if (!inStr) {
+        const repaired = candidate + stack.reverse().join('');
+        parsed = tryParse(repaired);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    }
+  }
+  return null;
+}
+
+async function callGeminiAPI(prompt, base64Image = null, mimeType = 'image/jpeg', expectJson = false) {
   const cleanKey = (AppState.apiKey || '').replace(/\s+/g, '');
   if (AppState.aiMode !== 'gemini' || !cleanKey) {
     throw new Error('DEMO_MODE');
@@ -286,18 +348,36 @@ async function callGeminiAPI(prompt, base64Image = null, mimeType = 'image/jpeg'
     const isUserChosen = (i === 0 && model === chosenModel);
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`;
     try {
-      // Cho model người dùng chủ động chọn thời gian chờ rộng hơn (25s) để tránh bị ngắt sớm
-      const response = await fetchWithTimeout(endpoint, {
+      const genConfig = {
+        temperature: 0.05,
+        maxOutputTokens: 8192
+      };
+      if (expectJson) {
+        genConfig.responseMimeType = 'application/json';
+      }
+
+      // Cho model người dùng chủ động chọn thời gian chờ rộng hơn (35s) để xử lý ảnh + suy luận đầy đủ không bị cắt JSON
+      let response = await fetchWithTimeout(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts }],
-          generationConfig: {
-            temperature: 0.05,
-            maxOutputTokens: 1800
-          }
+          generationConfig: genConfig
         })
-      }, isUserChosen ? 25000 : 12000);
+      }, isUserChosen ? 35000 : 18000);
+
+      // Nếu model cũ không hỗ trợ responseMimeType -> thử lại không có responseMimeType
+      if (!response.ok && response.status === 400 && expectJson) {
+        delete genConfig.responseMimeType;
+        response = await fetchWithTimeout(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts }],
+            generationConfig: genConfig
+          })
+        }, isUserChosen ? 35000 : 18000);
+      }
 
       if (!response.ok) {
         let msg = `HTTP ${response.status}`;
@@ -329,7 +409,13 @@ async function callGeminiAPI(prompt, base64Image = null, mimeType = 'image/jpeg'
         const sel = document.getElementById('gemini-model-select');
         if (sel && sel.value !== model) sel.value = model;
       }
-      return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Không nhận được phản hồi từ AI.';
+      const respParts = data?.candidates?.[0]?.content?.parts || [];
+      const answerText = respParts
+        .filter(p => p && !p.thought && typeof p.text === 'string')
+        .map(p => p.text)
+        .join('\n')
+        .trim() || respParts.map(p => p?.text || '').join('\n').trim();
+      return answerText || 'Không nhận được phản hồi từ AI.';
     } catch (err) {
       if (err.name === 'AbortError') {
         lastError = new Error(`Model ${model} phản hồi chậm`);
@@ -2128,14 +2214,8 @@ TRẢ VỀ DUY NHẤT MỘT KHỐI JSON HỢP LỆ (không thêm chữ nào ngo�
 }`;
 
   try {
-    const rawReply = await callGeminiAPI(prompt, AppState.uploadedSiteBase64, AppState.uploadedSiteMime);
-    let parsed = null;
-    try {
-      const jsonMatch = rawReply.match(/\{[\s\S]*\}/);
-      if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
-    } catch (_) {
-      parsed = null;
-    }
+    const rawReply = await callGeminiAPI(prompt, AppState.uploadedSiteBase64, AppState.uploadedSiteMime, true);
+    const parsed = parseGeminiJsonSafe(rawReply);
 
     if (parsed && typeof parsed === 'object') {
       const score = typeof parsed.score === 'number' ? parsed.score : '--';
@@ -2527,18 +2607,10 @@ DANH MỤC MÃ VẬT TƯ CHUẨN (BẮT BUỘC CHỈ CHỌN "code" TỪ DANH SÁ
 ${catalogListText}`;
 
   try {
-    const rawReply = await callGeminiAPI(prompt, AppState.uploadedCrackBase64, AppState.uploadedCrackMime);
+    const rawReply = await callGeminiAPI(prompt, AppState.uploadedCrackBase64, AppState.uploadedCrackMime, true);
 
-    // Trích xuất khối JSON từ phản hồi của Gemini
-    let parsed = null;
-    try {
-      const jsonMatch = rawReply.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        parsed = JSON.parse(jsonMatch[0]);
-      }
-    } catch (_) {
-      parsed = null;
-    }
+    // Trích xuất & cứu hộ khối JSON an toàn từ phản hồi của Gemini
+    const parsed = parseGeminiJsonSafe(rawReply);
 
     if (parsed && typeof parsed === 'object') {
       if (compEl) compEl.textContent = parsed.component || 'Không xác định rõ cấu kiện';
