@@ -3498,6 +3498,18 @@ function applyAdminConfigToApp(cfg) {
       }
     });
   }
+
+  // 4. Tự động kết nối Gemini AI bằng API Key dùng chung tạm thời (cấu hình qua Firebase Admin — KHÔNG lộ key trên GitHub)
+  const sharedKey = (cfg.sharedApiKey || '').trim();
+  const userOwnKey = (localStorage.getItem('VIETBUILD_GEMINI_KEY') || '').trim();
+  if (sharedKey && !userOwnKey && !AppState.apiVerified) {
+    AppState.apiKey = sharedKey;
+    AppState.aiMode = 'gemini';
+    AppState.usingSharedKey = true;
+    toggleAIMode('gemini');
+    setLinkedUIState(true);
+    connectAndVerifyGeminiKey(sharedKey);
+  }
 }
 
 async function initAdminBridgeSync() {

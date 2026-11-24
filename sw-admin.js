@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dtu-admin-pwa-v4';
+const CACHE_NAME = 'dtu-admin-pwa-v5';
 const ASSETS = [
   '/admin.html',
   '/admin.js',

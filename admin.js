@@ -363,6 +363,26 @@ function populateAllAdminFields() {
   if (autoTcvnEl) autoTcvnEl.checked = Boolean(adminConfig.autoUpdate?.tcvn);
   const autoNoticeEl = document.getElementById('cfg-auto-notice');
   if (autoNoticeEl) autoNoticeEl.checked = Boolean(adminConfig.autoUpdate?.notice);
+  setVal('cfg-shared-api-key', adminConfig.sharedApiKey || '');
+}
+
+async function saveSharedApiKey() {
+  const val = (document.getElementById('cfg-shared-api-key')?.value || '').trim();
+  if (!val) {
+    showToast('Vui lòng dán Gemini API Key trước khi lưu!', true);
+    return;
+  }
+  adminConfig.sharedApiKey = val;
+  await pushConfigToCloud();
+  showToast('Đã bật Gemini API Key dùng chung — khách mở web sẽ tự kết nối AI ngay!');
+}
+
+async function clearSharedApiKey() {
+  adminConfig.sharedApiKey = '';
+  const el = document.getElementById('cfg-shared-api-key');
+  if (el) el.value = '';
+  await pushConfigToCloud();
+  showToast('Đã gỡ API Key dùng chung khỏi web chính.');
 }
 
 async function saveAdminPrices() {
