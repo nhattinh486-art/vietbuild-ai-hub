@@ -191,10 +191,11 @@ const CRACK_SCENARIOS = {
 // ============================================================================
 
 const FALLBACK_GEMINI_MODELS = [
-  'gemini-2.5-flash',
-  'gemini-2.5-flash-lite',
-  'gemini-2.0-flash',
-  'gemini-flash-latest'
+  'gemini-3.5-flash-lite',
+  'gemini-3.5-flash',
+  'gemini-3-flash',
+  'gemini-flash-latest',
+  'gemini-2.5-flash'
 ];
 
 async function discoverAvailableModels(cleanKey) {
@@ -227,15 +228,20 @@ async function discoverAvailableModels(cleanKey) {
     return FALLBACK_GEMINI_MODELS;
   }
 
-  // Ưu tiên các model ổn định & phản hồi nhanh (flash-lite / flash bản stable trước, preview/exp sau)
+  // Ưu tiên các model thế hệ mới (Gemini 3.5 / 3.x / 4.x) vì Google đã ngừng cấp Gemini 2.0/2.5 cho API Key mới (404)
   const scoreModel = (name) => {
     let score = 0;
     if (/flash/i.test(name)) score += 120;
-    if (/flash-lite/i.test(name)) score += 15; // Ít bị quá tải 503 và phản hồi nhanh nhất
-    if (/preview|exp/i.test(name)) score -= 40; // Bản preview hay quá tải 503
-    if (/pro/i.test(name)) score += 40;
+    if (/flash-lite/i.test(name)) score += 20;
+    if (/pro/i.test(name)) score += 45;
+    if (/preview|exp/i.test(name)) score -= 15;
     const verMatch = name.match(/gemini-(\d+(?:\.\d+)?)/i);
-    if (verMatch) score += parseFloat(verMatch[1]) * 10;
+    if (verMatch) {
+      const ver = parseFloat(verMatch[1]);
+      score += ver >= 3 ? (200 + ver * 25) : (ver * 10 - 150);
+    } else if (/gemini-flash-latest/i.test(name)) {
+      score += 180;
+    }
     return score;
   };
 
@@ -327,24 +333,34 @@ async function callGeminiAPI(prompt, base64Image = null, mimeType = 'image/jpeg'
     });
   }
 
+  if (!AppState.deadModels) AppState.deadModels = new Set();
+
   let modelsToTry = AppState.discoveredModels && AppState.discoveredModels.length
-    ? [AppState.activeModel, ...AppState.discoveredModels.filter(m => m !== AppState.activeModel)]
+    ? [AppState.activeModel, ...AppState.discoveredModels.filter(m => m !== AppState.activeModel), ...FALLBACK_GEMINI_MODELS]
     : null;
 
   if (!modelsToTry) {
     const discovered = await discoverAvailableModels(cleanKey);
     AppState.discoveredModels = discovered;
     populateModelSelect(discovered, discovered[0]);
-    modelsToTry = discovered;
+    modelsToTry = [...discovered, ...FALLBACK_GEMINI_MODELS];
+  }
+
+  // Loại trùng & bỏ qua các model đã xác nhận 404 (ngừng hỗ trợ)
+  modelsToTry = [...new Set(modelsToTry)].filter(m => m && !AppState.deadModels.has(m));
+  if (!modelsToTry.length) {
+    AppState.deadModels.clear();
+    modelsToTry = [...FALLBACK_GEMINI_MODELS];
   }
 
   const chosenModel = AppState.activeModel;
+  let chosenModelRetired = false;
   let lastError = null;
   let fallbackNotice = null;
 
-  for (let i = 0; i < Math.min(modelsToTry.length, 5); i++) {
+  for (let i = 0; i < Math.min(modelsToTry.length, 10); i++) {
     const model = modelsToTry[i];
-    if (!model) continue;
+    if (!model || AppState.deadModels.has(model)) continue;
     const isUserChosen = (i === 0 && model === chosenModel);
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(cleanKey)}`;
     try {
@@ -387,8 +403,26 @@ async function callGeminiAPI(prompt, base64Image = null, mimeType = 'image/jpeg'
         } catch (_) {}
         if ([404, 429, 500, 503, 504].includes(response.status)) {
           lastError = new Error(`Model ${model} (${response.status}): ${msg}`);
+          if (response.status === 404) {
+            AppState.deadModels.add(model);
+            if (isUserChosen) chosenModelRetired = true;
+            // Nếu Google gợi ý model thay thế ngay trong thông báo lỗi (VD: "use models/gemini-3.5-flash-lite") -> ưu tiên thử ngay lập tức!
+            const sugMatch = msg.match(/use\s+models\/([a-z0-9._-]+)/i);
+            if (sugMatch && sugMatch[1] && !AppState.deadModels.has(sugMatch[1])) {
+              const suggested = sugMatch[1];
+              if (!modelsToTry.includes(suggested)) {
+                modelsToTry.splice(i + 1, 0, suggested);
+              } else {
+                const idx = modelsToTry.indexOf(suggested);
+                if (idx > i + 1) {
+                  modelsToTry.splice(idx, 1);
+                  modelsToTry.splice(i + 1, 0, suggested);
+                }
+              }
+            }
+          }
           if (isUserChosen) {
-            fallbackNotice = `Model ${chosenModel} đang bận (${response.status}), tạm dùng ${modelsToTry[i + 1] || 'model dự phòng'}`;
+            fallbackNotice = `Model ${chosenModel} không khả dụng (${response.status}), đã tự động chuyển sang ${modelsToTry[i + 1] || 'model mới hơn'}`;
           }
           continue;
         }
@@ -402,12 +436,20 @@ async function callGeminiAPI(prompt, base64Image = null, mimeType = 'image/jpeg'
       AppState.lastUsedModel = model;
       AppState.lastFallbackNotice = isUserChosen ? null : fallbackNotice;
       AppState.apiVerified = true;
-      // Chỉ cập nhật activeModel mặc định nếu người dùng chưa chọn model nào; KHÔNG tự ý nhảy dropdown của người dùng!
-      if (!chosenModel) {
+      // Tự động cập nhật activeModel nếu chưa chọn hoặc model cũ đã bị Google khai tử (404)
+      if (!chosenModel || chosenModelRetired) {
         AppState.activeModel = model;
         localStorage.setItem('VIETBUILD_GEMINI_MODEL', model);
         const sel = document.getElementById('gemini-model-select');
-        if (sel && sel.value !== model) sel.value = model;
+        if (sel) {
+          if (!Array.from(sel.options).some(o => o.value === model)) {
+            const opt = document.createElement('option');
+            opt.value = model;
+            opt.textContent = model;
+            sel.prepend(opt);
+          }
+          sel.value = model;
+        }
       }
       const respParts = data?.candidates?.[0]?.content?.parts || [];
       const answerText = respParts
