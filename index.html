@@ -1049,9 +1049,14 @@
 
                   <div id="cadbim-apply-bar" class="hidden p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-wrap items-center justify-between gap-2">
                     <div id="cadbim-apply-summary" class="text-xs font-semibold text-emerald-900"></div>
-                    <button type="button" onclick="applyCadBimToEstimator()" class="px-4 py-2 rounded-xl btn-primary-dtu text-xs font-bold shadow-sm transition">
-                      Áp dụng vào Dự toán Mục 1 →
-                    </button>
+                    <div class="flex flex-wrap gap-2">
+                      <button type="button" onclick="applyCadBimToEstimator()" class="px-3.5 py-2 rounded-xl btn-primary-dtu text-xs font-bold shadow-sm transition">
+                        Đẩy sang Dự toán Mục 1 →
+                      </button>
+                      <button type="button" onclick="applyCadBimToModule2()" class="px-3.5 py-2 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-xs font-bold shadow-sm transition">
+                        Đẩy sang Kết cấu Mục 2 →
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

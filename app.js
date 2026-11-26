@@ -3851,7 +3851,9 @@ function parseAndRenderDXF(dxfText, fileName) {
   lastCadBimExtracted = {
     source: fileName,
     area: estAreaM2,
-    floors: null
+    floors: null,
+    spanM: Math.max(3, Math.min(12, Math.min(widthM || 5, lengthM || 5) || 5)),
+    columns: Math.max(4, countCircles || Math.round(estAreaM2 / 12))
   };
 
   const box = document.getElementById('cadbim-result-box');
@@ -3962,7 +3964,9 @@ function parseAndRenderIFC(ifcText, fileName) {
   lastCadBimExtracted = {
     source: fileName,
     area: estArea,
-    floors: estFloors
+    floors: estFloors,
+    spanM: Math.max(3.5, Math.min(9, +(Math.sqrt(estArea / Math.max(2, (columns || 8) / 2)) * 1.1).toFixed(1))),
+    columns: columns || 12
   };
 
   const box = document.getElementById('cadbim-result-box');
@@ -4084,7 +4088,14 @@ Hãy quan sát TẤT CẢ các ảnh bản vẽ đính kèm (từng tầng, tổ
     if (parsed && typeof parsed === 'object') {
       const area = Math.max(30, Math.round(parsed.areaM2 || ((parsed.widthM || 5) * (parsed.lengthM || 20))));
       const floors = Math.max(1, Math.round(parsed.floorsEstimate || Math.min(5, imgItems.length)));
-      lastCadBimExtracted = { source: `${imgItems.length} ảnh bản vẽ`, area, floors };
+      const spanVal = Math.max(3, Math.min(12, parseFloat(parsed.widthM) || 5.0));
+      lastCadBimExtracted = {
+        source: `${imgItems.length} ảnh bản vẽ`,
+        area,
+        floors,
+        spanM: spanVal,
+        columns: Math.max(4, parseInt(parsed.columnsEstimate, 10) || Math.round(area / 12))
+      };
       if (box) {
         box.innerHTML = `
           <div class="font-bold text-sm text-emerald-700 border-b border-slate-200 pb-1.5">Gemini Vision đã đọc tổng hợp ${imgItems.length} Bản vẽ Mặt bằng</div>
@@ -4121,6 +4132,42 @@ function applyCadBimToEstimator() {
   if (floorsInput && lastCadBimExtracted.floors) floorsInput.value = lastCadBimExtracted.floors;
   calculateEstimation(true);
   switchEstimatorSubTab('overview');
+}
+
+function applyCadBimToModule2() {
+  if (!lastCadBimExtracted) return;
+  const spanM = Math.max(3, Math.min(12, parseFloat(lastCadBimExtracted.spanM) || 5.0));
+  const floors = Math.max(1, parseInt(lastCadBimExtracted.floors, 10) || parseInt(document.getElementById('est-floors')?.value, 10) || 3);
+  const area = Math.max(30, parseFloat(lastCadBimExtracted.area) || 100);
+  const cols = Math.max(4, parseInt(lastCadBimExtracted.columns, 10) || 8);
+
+  // 1. Điền thông số Kiểm tra Tiết diện & Cốt thép Dầm (TCVN 5574:2018)
+  const beamHRec = Math.max(300, Math.ceil(((spanM * 1000) / 10) / 50) * 50);
+  const slabHRec = Math.max(100, Math.ceil(((spanM * 1000) / 40) / 10) * 10);
+  const setVal = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  setVal('chk-span', spanM);
+  setVal('chk-beam-h', beamHRec);
+  setVal('chk-slab-h', slabHRec);
+  setVal('rc-h', beamHRec);
+
+  // 2. Điền chiều cao công trình cho Tải trọng Gió (TCVN 2737:2023) & Quy mô PCCC (QCVN 06:2022)
+  const buildingH = Math.round(floors * 3.6);
+  setVal('wind-height', buildingH);
+  const pcccLevel = floors <= 5 ? 'low' : floors <= 9 ? 'mid' : 'high';
+  setVal('pccc-height', pcccLevel);
+
+  // 3. Ước tính lực dọc chân cột điển hình N (Tấn) cho Kiểm tra Móng đơn (TCVN 9362:2012)
+  const tribArea = area / Math.max(3, cols * 0.65);
+  const estColLoadTon = Math.max(20, Math.round(tribArea * floors * 1.25));
+  setVal('fnd-load', estColLoadTon);
+
+  // Tính lại toàn bộ 4 tab của Mục 2 và chuyển thẳng sang Mục 2
+  checkStructureTCVN(true);
+  calcBeamRebar();
+  calcLoads2737();
+  calcFoundationPccc();
+  switchTab('tcvn');
+  switchTcvnSubTab('beam');
 }
 
 function loadSampleDXF() {
