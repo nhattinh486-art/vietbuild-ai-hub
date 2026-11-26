@@ -10,6 +10,8 @@ Tài liệu ghi nhận **System Prompt** và **toàn bộ lịch sử hội tho�
 
 - **System Prompt tích hợp bên trong ứng dụng Web (khi gọi Gemini API):**
 
+  - *Module 1 (Đọc Bản vẽ CAD/BIM & Ảnh mặt bằng):* Yêu cầu Gemini Vision đọc và tổng hợp đồng thời nhiều ảnh bản vẽ mặt bằng (Tầng 1, Tầng 2, tổng mặt bằng…), trích xuất kích thước lưới trục, diện tích sàn, số tầng và tự động đổ thông số sang Dự toán BOQ (Mục 1) và Kiểm tra Kết cấu (Mục 2).
+
   - *Module 3 (Giám sát An toàn HSE):* Yêu cầu Gemini Vision đóng vai Kỹ sư An toàn Lao động (HSE), phân tích ảnh công trường theo TCVN/QCVN, liệt kê lỗi vi phạm PPE/giàn giáo, chấm điểm an toàn và tự động biên soạn Nhật ký thi công.
 
   - *Module 4 (Bác sĩ Công trình):* Yêu cầu Gemini Vision đóng vai Chuyên gia Kết cấu, nhận diện hình thái vết nứt (nứt cắt 45°, nứt uốn, nứt chân chim), đối chiếu giới hạn bề rộng vết nứt $a_{crc} \le 0.3\text{ mm}$ theo **TCVN 5574:2018** và đề xuất quy trình bơm keo Epoxy / hóa chất sửa chữa.

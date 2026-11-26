@@ -10,7 +10,7 @@
 | Thành phần | Tên cụ thể | Mục đích sử dụng |
 | :--- | :--- | :--- |
 | **IDE / Trợ lý AI phát triển** | **Google Antigravity** (Agentic AI IDE) | Lên cấu trúc dự án, sinh mã nguồn giao diện & logic theo yêu cầu của tác giả, gỡ lỗi và tối ưu UI/UX. |
-| **Mô hình AI tích hợp trong Web** | `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-1.5-flash` (Google Gemini API) | Phân tích ảnh hiện trường công trường (phát hiện vi phạm PPE/giàn giáo), chẩn đoán hình thái vết nứt kết cấu và sinh nội dung Nhật ký thi công. |
+| **Mô hình AI tích hợp trong Web** | Google Gemini API (tự động nhận diện phiên bản khả dụng & chuyển dự phòng) | Đọc và tổng hợp nhiều ảnh bản vẽ mặt bằng (`.png`/`.jpg`) sang thông số dự toán, phân tích ảnh công trường (phát hiện lỗi bảo hộ/giàn giáo), chẩn đoán vết nứt kết cấu và biên soạn Nhật ký thi công. |
 | **Chế độ dự phòng (Offline)** | Smart Simulation Engine (Rule-based trong `app.js`) | Mô phỏng kết quả phân tích kỹ thuật theo kịch bản mẫu chuẩn hóa khi không có kết nối mạng hoặc chưa nhập API Key. |
 
 ---
@@ -46,6 +46,6 @@
 
 | Nhóm công việc | Phần Tác giả tự thực hiện (Self-made) | Phần AI hỗ trợ (AI-assisted) | Phần Kế thừa (Inherited / Open-source) |
 | :--- | :--- | :--- | :--- |
-| **Ý tưởng & Bài toán chuyên ngành** | Xác định 5 bài toán thực tế của sinh viên & kỹ sư xây dựng (Dự toán Xanh, TCVN, HSE, Vết nứt, Admin BOQ); đặt yêu cầu nghiệp vụ & chuẩn hóa nội dung chuyên môn. | Gợi ý cấu trúc hệ sinh thái 5-trong-1 và đề xuất các kịch bản trình diễn. | Các quy định từ TCVN 5574:2018, TCVN 2737:2023, QCVN 06:2022/BXD, TCVN 9362:2012. |
+| **Ý tưởng & Bài toán chuyên ngành** | Xác định 5 bài toán thực tế của sinh viên & kỹ sư xây dựng (Dự toán Xanh & Đọc bản vẽ CAD/BIM, TCVN, HSE, Vết nứt, Admin BOQ); đặt yêu cầu nghiệp vụ & chuẩn hóa nội dung chuyên môn. | Gợi ý cấu trúc hệ sinh thái 5-trong-1 và đề xuất các kịch bản trình diễn. | Các quy định từ TCVN 5574:2018, TCVN 2737:2023, QCVN 06:2022/BXD, TCVN 9362:2012. |
 | **Giao diện (UI/UX) & PWA** | Định hướng tông màu sáng giấy kỹ thuật nhận diện Khoa Xây dựng DTU, bố cục 5 phân hệ, cấu trúc trang Admin và kiểm thử cài đặt PWA trên Desktop/iOS/Android. | Sinh mã HTML/CSS/Tailwind (`index.html`, `admin.html`), tối ưu Responsive và hỗ trợ cài đặt PWA trên điện thoại iOS/Android cho **cả Web chính (`manifest.json`, `sw.js`) lẫn App Admin (`manifest-admin.json`, `sw-admin.js`)**. | Tailwind CSS CDN, Lucide Icons, Google Fonts (`Inter`, `JetBrains Mono`). |
-| **Logic tính toán & AI Vision** | Thiết kế công thức bóc tách sơ bộ, chọn vật liệu xanh (AAC, Low-E), kiểm định logic kết quả kỹ thuật và thiết lập mật khẩu/quy trình Admin (`dtu2026`). | Viết mã JavaScript (`app.js`, `admin.js`, `geminiService.js`) xử lý tính toán, kết nối Gemini API, vẽ biểu đồ và xuất PDF. | Chart.js, html2pdf.js, Google Gemini API (`gemini-2.5-flash`), React/Vite. |
+| **Logic tính toán & AI Vision** | Thiết kế công thức bóc tách sơ bộ, quy tắc trích xuất bản vẽ `.dxf`/`.ifc` và ảnh mặt bằng, chọn vật liệu xanh (AAC, Low-E), kiểm định logic kết quả kỹ thuật và thiết lập mật khẩu/quy trình Admin (`dtu2026`). | Viết mã JavaScript (`app.js`, `admin.js`, `geminiService.js`) xử lý đọc bản vẽ 2D/3D (`.dxf`, `.ifc`), tính toán kết cấu, kết nối Gemini API, vẽ biểu đồ và xuất PDF. | Chart.js, html2pdf.js, Google Gemini API, Firebase, React/Vite. |
