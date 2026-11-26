@@ -323,7 +323,18 @@ async function callGeminiAPI(prompt, base64Image = null, mimeType = 'image/jpeg'
   }
 
   const parts = [{ text: prompt }];
-  if (base64Image) {
+  if (Array.isArray(base64Image)) {
+    base64Image.forEach(img => {
+      if (!img || !img.base64) return;
+      const cleanB64 = img.base64.includes(',') ? img.base64.split(',')[1] : img.base64;
+      parts.push({
+        inline_data: {
+          mime_type: img.mimeType || 'image/jpeg',
+          data: cleanB64
+        }
+      });
+    });
+  } else if (base64Image) {
     const cleanBase64 = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
     parts.push({
       inline_data: {
@@ -3609,10 +3620,31 @@ function closeMainInstallModal() {
 let lastCadBimExtracted = null;
 
 function handleCadBimFileUpload(event) {
-  const file = event?.target?.files?.[0];
-  if (!file) return;
+  const files = Array.from(event?.target?.files || []);
+  if (!files.length) return;
+
+  // Nếu người dùng chọn 1 hoặc NHIỀU ảnh bản vẽ mặt bằng (VD: Tầng 1, Tầng 2, TMB...)
+  const imageFiles = files.filter(f => f.type && f.type.startsWith('image/'));
+  if (imageFiles.length > 0) {
+    const readImage = (f) => new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve({
+        name: f.name,
+        mimeType: f.type || 'image/jpeg',
+        base64: String(e.target.result || '')
+      });
+      reader.readAsDataURL(f);
+    });
+    Promise.all(imageFiles.slice(0, 8).map(readImage)).then((imgItems) => {
+      analyzeBlueprintImagesWithAI(imgItems);
+    });
+    return;
+  }
+
+  const file = files[0];
   const name = file.name || '';
   const ext = name.split('.').pop().toLowerCase();
+  document.getElementById('cadbim-gallery')?.classList.add('hidden');
 
   if (ext === 'dxf') {
     const reader = new FileReader();
@@ -3626,14 +3658,10 @@ function handleCadBimFileUpload(event) {
     const reader = new FileReader();
     reader.onload = (e) => inspectBinaryCadHeader(new Uint8Array(e.target.result), name, ext, file.size);
     reader.readAsArrayBuffer(file.slice(0, 64));
-  } else if (file.type && file.type.startsWith('image/')) {
-    const reader = new FileReader();
-    reader.onload = (e) => analyzeBlueprintImageWithAI(String(e.target.result || ''), file.type, name);
-    reader.readAsDataURL(file);
   } else {
     const box = document.getElementById('cadbim-result-box');
     if (box) {
-      box.innerHTML = `<div class="text-rose-700 font-semibold">Định dạng tệp "${name}" chưa hỗ trợ. Vui lòng chọn tệp .dxf, .ifc, .dwg, .rvt hoặc ảnh mặt bằng (.png, .jpg).</div>`;
+      box.innerHTML = `<div class="text-rose-700 font-semibold">Định dạng tệp "${name}" chưa hỗ trợ. Vui lòng chọn tệp .dxf, .ifc, .dwg, .rvt hoặc 1–8 ảnh mặt bằng (.png, .jpg).</div>`;
     }
   }
 }
@@ -3997,57 +4025,82 @@ function inspectBinaryCadHeader(bytes, fileName, ext, fileSize) {
   document.getElementById('cadbim-apply-bar')?.classList.add('hidden');
 }
 
-async function analyzeBlueprintImageWithAI(dataUrl, mimeType, fileName) {
+async function analyzeBlueprintImagesWithAI(imgItems) {
+  if (!Array.isArray(imgItems) || !imgItems.length) return;
   const wrap = document.getElementById('cadbim-preview-wrap');
   const canvas = document.getElementById('cadbim-canvas');
   const imgPrev = document.getElementById('cadbim-img-preview');
+  const gallery = document.getElementById('cadbim-gallery');
   const titleEl = document.getElementById('cadbim-preview-title');
   const badgeEl = document.getElementById('cadbim-file-badge');
+
   if (wrap) wrap.classList.remove('hidden');
   if (canvas) canvas.classList.add('hidden');
-  if (imgPrev) {
-    imgPrev.src = dataUrl;
-    imgPrev.classList.remove('hidden');
+
+  if (imgItems.length === 1) {
+    if (gallery) gallery.classList.add('hidden');
+    if (imgPrev) {
+      imgPrev.src = imgItems[0].base64;
+      imgPrev.classList.remove('hidden');
+    }
+    if (titleEl) titleEl.textContent = imgItems[0].name;
+    if (badgeEl) badgeEl.textContent = 'AI Vision • 1 bản vẽ';
+  } else {
+    if (imgPrev) imgPrev.classList.add('hidden');
+    if (gallery) {
+      gallery.classList.remove('hidden');
+      const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      gallery.innerHTML = imgItems.map((it, idx) => `
+        <div class="rounded-xl border border-slate-200 bg-slate-50 p-1.5 space-y-1">
+          <img src="${it.base64}" alt="${esc(it.name)}" class="w-full h-24 object-contain rounded-lg bg-white" />
+          <div class="text-[10px] font-semibold text-slate-700 truncate" title="${esc(it.name)}">${idx + 1}. ${esc(it.name)}</div>
+        </div>
+      `).join('');
+    }
+    if (titleEl) titleEl.textContent = `Bộ hồ sơ gồm ${imgItems.length} bản vẽ mặt bằng`;
+    if (badgeEl) badgeEl.textContent = `AI Vision • ${imgItems.length} ảnh`;
   }
-  if (titleEl) titleEl.textContent = fileName;
-  if (badgeEl) badgeEl.textContent = 'AI Vision Blueprint';
 
   const box = document.getElementById('cadbim-result-box');
   if (box) {
-    box.innerHTML = `<div class="flex items-center gap-2 text-emerald-700 font-semibold"><span class="animate-spin inline-block w-4 h-4 shrink-0 border-2 border-emerald-600 border-t-transparent rounded-full"></span><span>Gemini Vision AI đang đọc kích thước lưới trục &amp; bóc tách mặt bằng...</span></div>`;
+    box.innerHTML = `<div class="flex items-center gap-2 text-emerald-700 font-semibold"><span class="animate-spin inline-block w-4 h-4 shrink-0 border-2 border-emerald-600 border-t-transparent rounded-full"></span><span>Gemini Vision AI đang đọc tổng hợp ${imgItems.length} bản vẽ mặt bằng (lưới trục, số tầng, diện tích &amp; cột)...</span></div>`;
   }
 
+  const fileListDesc = imgItems.map((it, idx) => `Ảnh ${idx + 1}: ${it.name}`).join('; ');
+
   try {
-    const prompt = `Bạn là Kỹ sư QS & Kết cấu Việt Nam. Hãy đọc bản vẽ mặt bằng kiến trúc/kết cấu trong ảnh này và trả về DUY NHẤT JSON chuẩn:
+    const prompt = `Bạn là Kỹ sư QS & Kết cấu Việt Nam. Người dùng vừa tải lên bộ hồ sơ gồm ${imgItems.length} ảnh bản vẽ (${fileListDesc}).
+Hãy quan sát TẤT CẢ các ảnh bản vẽ đính kèm (từng tầng, tổng mặt bằng, lưới trục, kích thước phủ bì) và trả về DUY NHẤT JSON chuẩn:
 {
   "widthM": 5.0,
   "lengthM": 20.0,
   "areaM2": 100,
-  "floorsEstimate": 3,
+  "floorsEstimate": 2,
   "columnsEstimate": 12,
-  "summary": "Tóm tắt ngắn gọn kích thước lưới trục, công năng các phòng và lưu ý kết cấu đọc được từ bản vẽ (không dùng dấu * hay LaTeX)"
+  "summary": "Tóm tắt rõ từng bản vẽ đã đọc (VD: Ảnh 1 tầng 1..., Ảnh 2 tầng 2..., Ảnh 3 tổng mặt bằng...), kích thước lưới trục, công năng và lưu ý kết cấu (dùng gạch đầu dòng -, không dùng dấu * hay LaTeX)"
 }`;
-    const raw = await callGeminiAPI(prompt, dataUrl, mimeType, true);
+    const raw = await callGeminiAPI(prompt, imgItems, 'image/jpeg', true);
     const parsed = parseGeminiJsonSafe(raw);
     if (parsed && typeof parsed === 'object') {
       const area = Math.max(30, Math.round(parsed.areaM2 || ((parsed.widthM || 5) * (parsed.lengthM || 20))));
-      const floors = Math.max(1, Math.round(parsed.floorsEstimate || 3));
-      lastCadBimExtracted = { source: fileName, area, floors };
+      const floors = Math.max(1, Math.round(parsed.floorsEstimate || Math.min(5, imgItems.length)));
+      lastCadBimExtracted = { source: `${imgItems.length} ảnh bản vẽ`, area, floors };
       if (box) {
         box.innerHTML = `
-          <div class="font-bold text-sm text-emerald-700 border-b border-slate-200 pb-1.5">Gemini Vision đã đọc xong Bản vẽ Mặt bằng</div>
-          <div class="grid grid-cols-3 gap-2 pt-1 font-mono-tech">
+          <div class="font-bold text-sm text-emerald-700 border-b border-slate-200 pb-1.5">Gemini Vision đã đọc tổng hợp ${imgItems.length} Bản vẽ Mặt bằng</div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono-tech">
             <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Kích thước</div><div class="text-xs font-bold">${parsed.widthM || '--'}×${parsed.lengthM || '--'}m</div></div>
-            <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Diện tích sàn</div><div class="text-xs font-extrabold text-[#8b1e2b]">${area} m²</div></div>
+            <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Diện tích/sàn</div><div class="text-xs font-extrabold text-[#8b1e2b]">${area} m²</div></div>
+            <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Số tầng đọc được</div><div class="text-xs font-extrabold text-sky-700">${floors} tầng</div></div>
             <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Số cột dự kiến</div><div class="text-xs font-bold">${parsed.columnsEstimate || '--'}</div></div>
           </div>
-          <div class="pt-1 text-slate-700">${formatAIResponseHTML(parsed.summary || 'Đã hoàn tất phân tích bản vẽ.')}</div>
+          <div class="pt-1 text-slate-700">${formatAIResponseHTML(parsed.summary || 'Đã hoàn tất phân tích bộ bản vẽ.')}</div>
         `;
       }
       const applyBar = document.getElementById('cadbim-apply-bar');
       const applySum = document.getElementById('cadbim-apply-summary');
       if (applyBar && applySum) {
-        applySum.textContent = `Sẵn sàng đẩy Diện tích ${area} m²/sàn × ${floors} tầng sang Dự toán Mục 1!`;
+        applySum.textContent = `Sẵn sàng đẩy Diện tích ${area} m²/sàn × ${floors} tầng (từ ${imgItems.length} bản vẽ) sang Dự toán Mục 1!`;
         applyBar.classList.remove('hidden');
       }
     } else if (box) {
@@ -4055,7 +4108,7 @@ async function analyzeBlueprintImageWithAI(dataUrl, mimeType, fileName) {
     }
   } catch (err) {
     if (box) {
-      box.innerHTML = `<div class="text-rose-700 font-semibold">Không thể phân tích ảnh mặt bằng bằng AI: ${err.message}. Hãy kiểm tra kết nối Gemini API hoặc tải tệp .dxf / .ifc để đọc ngoại tuyến 100%.</div>`;
+      box.innerHTML = `<div class="text-rose-700 font-semibold">Không thể phân tích bộ ảnh bản vẽ bằng AI: ${err.message}. Hãy kiểm tra kết nối Gemini API hoặc tải tệp .dxf / .ifc để đọc ngoại tuyến 100%.</div>`;
     }
   }
 }

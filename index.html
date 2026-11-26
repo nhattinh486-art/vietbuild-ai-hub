@@ -1019,12 +1019,12 @@
                 <!-- Cột trái: Vùng tải tệp + Canvas xem trước CAD 2D / Ảnh -->
                 <div class="lg:col-span-6 space-y-3">
                   <label class="block p-5 rounded-2xl border-2 border-dashed border-slate-300 hover:border-[#8b1e2b] bg-slate-50 text-center cursor-pointer transition">
-                    <input id="cadbim-file-input" type="file" accept=".dxf,.ifc,.dwg,.rvt,image/*" onchange="handleCadBimFileUpload(event)" class="hidden" />
+                    <input id="cadbim-file-input" type="file" multiple accept=".dxf,.ifc,.dwg,.rvt,image/*" onchange="handleCadBimFileUpload(event)" class="hidden" />
                     <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-white border border-slate-200 shadow-sm text-[#8b1e2b] mb-2">
                       <i data-lucide="upload-cloud" class="w-5 h-5"></i>
                     </div>
-                    <div class="text-sm font-bold text-slate-800">Tải tệp Bản vẽ CAD / BIM hoặc Ảnh Mặt bằng</div>
-                    <div class="text-xs text-slate-500 mt-1">Hỗ trợ đọc trực tiếp: <strong>.dxf</strong> (AutoCAD), <strong>.ifc</strong> (BIM Open Standard), <strong>.png / .jpg</strong> (AI Vision) • Nhận diện phiên bản <strong>.dwg / .rvt</strong></div>
+                    <div class="text-sm font-bold text-slate-800">Tải 1 hoặc nhiều Ảnh Bản vẽ (Tầng 1, Tầng 2, TMB...) hoặc tệp .dxf / .ifc</div>
+                    <div class="text-xs text-slate-500 mt-1">Hỗ trợ chọn cùng lúc nhiều ảnh mặt bằng (.png/.jpg) để Gemini Vision tổng hợp cả bộ hồ sơ • Đọc trực tiếp <strong>.dxf</strong> &amp; <strong>.ifc</strong></div>
                   </label>
 
                   <div id="cadbim-preview-wrap" class="hidden rounded-2xl border border-slate-200 bg-white p-3 space-y-2">
@@ -1034,6 +1034,7 @@
                     </div>
                     <canvas id="cadbim-canvas" width="560" height="320" class="hidden w-full h-64 rounded-xl bg-[#0f172a] border border-slate-800"></canvas>
                     <img id="cadbim-img-preview" class="hidden w-full max-h-64 object-contain rounded-xl border border-slate-200 bg-slate-50" alt="Ảnh bản vẽ mặt bằng" />
+                    <div id="cadbim-gallery" class="hidden grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1"></div>
                   </div>
                 </div>
 
