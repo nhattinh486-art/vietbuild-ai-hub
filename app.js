@@ -3603,6 +3603,526 @@ function closeMainInstallModal() {
 })();
 
 // ============================================================================
+// 12. TRÌNH ĐỌC & TRÍCH XUẤT BẢN VẼ KỸ THUẬT CAD / BIM (.DXF, .IFC, .DWG, .RVT, ẢNH)
+// ============================================================================
+
+let lastCadBimExtracted = null;
+
+function handleCadBimFileUpload(event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  const name = file.name || '';
+  const ext = name.split('.').pop().toLowerCase();
+
+  if (ext === 'dxf') {
+    const reader = new FileReader();
+    reader.onload = (e) => parseAndRenderDXF(String(e.target.result || ''), name);
+    reader.readAsText(file);
+  } else if (ext === 'ifc') {
+    const reader = new FileReader();
+    reader.onload = (e) => parseAndRenderIFC(String(e.target.result || ''), name);
+    reader.readAsText(file);
+  } else if (ext === 'dwg' || ext === 'rvt') {
+    const reader = new FileReader();
+    reader.onload = (e) => inspectBinaryCadHeader(new Uint8Array(e.target.result), name, ext, file.size);
+    reader.readAsArrayBuffer(file.slice(0, 64));
+  } else if (file.type && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = (e) => analyzeBlueprintImageWithAI(String(e.target.result || ''), file.type, name);
+    reader.readAsDataURL(file);
+  } else {
+    const box = document.getElementById('cadbim-result-box');
+    if (box) {
+      box.innerHTML = `<div class="text-rose-700 font-semibold">Định dạng tệp "${name}" chưa hỗ trợ. Vui lòng chọn tệp .dxf, .ifc, .dwg, .rvt hoặc ảnh mặt bằng (.png, .jpg).</div>`;
+    }
+  }
+}
+
+function parseAndRenderDXF(dxfText, fileName) {
+  const lines = dxfText.replace(/\r\n/g, '\n').split('\n');
+  const entities = [];
+  const layers = new Set();
+  const texts = [];
+  let inEntities = false;
+  let current = null;
+  let polyPts = [];
+
+  for (let i = 0; i < lines.length - 1; i += 2) {
+    const code = lines[i].trim();
+    const val = (lines[i + 1] || '').trim();
+
+    if (code === '0' && val === 'SECTION') {
+      continue;
+    }
+    if (code === '2' && val === 'ENTITIES') {
+      inEntities = true;
+      continue;
+    }
+    if (code === '0' && val === 'ENDSEC' && inEntities) {
+      if (current) {
+        if (polyPts.length) current.points = polyPts;
+        entities.push(current);
+      }
+      inEntities = false;
+      current = null;
+      polyPts = [];
+      continue;
+    }
+    if (!inEntities) continue;
+
+    if (code === '0') {
+      if (current) {
+        if (polyPts.length) current.points = polyPts;
+        entities.push(current);
+      }
+      current = { type: val, layer: '0' };
+      polyPts = [];
+      continue;
+    }
+    if (!current) continue;
+
+    if (code === '8') {
+      current.layer = val;
+      layers.add(val);
+    } else if (current.type === 'LINE') {
+      if (code === '10') current.x1 = parseFloat(val);
+      if (code === '20') current.y1 = parseFloat(val);
+      if (code === '11') current.x2 = parseFloat(val);
+      if (code === '21') current.y2 = parseFloat(val);
+    } else if (current.type === 'LWPOLYLINE') {
+      if (code === '10') polyPts.push({ x: parseFloat(val), y: 0 });
+      if (code === '20' && polyPts.length) polyPts[polyPts.length - 1].y = parseFloat(val);
+      if (code === '70') current.closed = (parseInt(val, 10) & 1) === 1;
+    } else if (current.type === 'CIRCLE') {
+      if (code === '10') current.cx = parseFloat(val);
+      if (code === '20') current.cy = parseFloat(val);
+      if (code === '40') current.r = parseFloat(val);
+    } else if (current.type === 'TEXT' || current.type === 'MTEXT') {
+      if (code === '1' && val) texts.push(val);
+    }
+  }
+
+  // Tính kích thước bao & tổng chiều dài nét vẽ
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  let totalLineLength = 0;
+  let countLines = 0, countPolys = 0, countCircles = 0, countInserts = 0;
+
+  const trackPt = (x, y) => {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  };
+
+  entities.forEach(ent => {
+    if (ent.type === 'LINE' && Number.isFinite(ent.x1) && Number.isFinite(ent.x2)) {
+      countLines++;
+      trackPt(ent.x1, ent.y1);
+      trackPt(ent.x2, ent.y2);
+      totalLineLength += Math.hypot(ent.x2 - ent.x1, ent.y2 - ent.y1);
+    } else if (ent.type === 'LWPOLYLINE' && ent.points && ent.points.length >= 2) {
+      countPolys++;
+      for (let i = 0; i < ent.points.length; i++) {
+        trackPt(ent.points[i].x, ent.points[i].y);
+        if (i > 0) {
+          totalLineLength += Math.hypot(ent.points[i].x - ent.points[i - 1].x, ent.points[i].y - ent.points[i - 1].y);
+        }
+      }
+      if (ent.closed) {
+        const a = ent.points[ent.points.length - 1];
+        const b = ent.points[0];
+        totalLineLength += Math.hypot(b.x - a.x, b.y - a.y);
+      }
+    } else if (ent.type === 'CIRCLE' && Number.isFinite(ent.cx)) {
+      countCircles++;
+      trackPt(ent.cx - (ent.r || 0), ent.cy - (ent.r || 0));
+      trackPt(ent.cx + (ent.r || 0), ent.cy + (ent.r || 0));
+    } else if (ent.type === 'INSERT') {
+      countInserts++;
+    }
+  });
+
+  // Chuẩn hóa đơn vị (nếu kích thước > 200 coi là mm -> quy đổi ra mét)
+  const rawW = Number.isFinite(maxX - minX) ? Math.abs(maxX - minX) : 0;
+  const rawH = Number.isFinite(maxY - minY) ? Math.abs(maxY - minY) : 0;
+  const isMm = Math.max(rawW, rawH) > 200;
+  const scaleToM = isMm ? 0.001 : 1;
+  const widthM = +(rawW * scaleToM).toFixed(2);
+  const lengthM = +(rawH * scaleToM).toFixed(2);
+  const estAreaM2 = Math.max(30, Math.round(widthM * lengthM));
+  const totalLenM = +(totalLineLength * scaleToM).toFixed(1);
+
+  // Vẽ xem trước 2D CAD trên Canvas
+  const wrap = document.getElementById('cadbim-preview-wrap');
+  const canvas = document.getElementById('cadbim-canvas');
+  const imgPrev = document.getElementById('cadbim-img-preview');
+  const titleEl = document.getElementById('cadbim-preview-title');
+  const badgeEl = document.getElementById('cadbim-file-badge');
+  if (wrap) wrap.classList.remove('hidden');
+  if (imgPrev) imgPrev.classList.add('hidden');
+  if (canvas) {
+    canvas.classList.remove('hidden');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Nền lưới bản vẽ CAD tối chuẩn kỹ sư
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.strokeStyle = 'rgba(148,163,184,0.12)';
+    ctx.lineWidth = 1;
+    for (let gx = 0; gx < canvas.width; gx += 28) {
+      ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, canvas.height); ctx.stroke();
+    }
+    for (let gy = 0; gy < canvas.height; gy += 28) {
+      ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(canvas.width, gy); ctx.stroke();
+    }
+
+    if (rawW > 0 || rawH > 0) {
+      const pad = 28;
+      const sx = (canvas.width - pad * 2) / Math.max(rawW, 1);
+      const sy = (canvas.height - pad * 2) / Math.max(rawH, 1);
+      const sc = Math.min(sx, sy);
+      const offsetX = (canvas.width - rawW * sc) / 2;
+      const offsetY = (canvas.height - rawH * sc) / 2;
+      const toX = (x) => offsetX + (x - minX) * sc;
+      const toY = (y) => canvas.height - (offsetY + (y - minY) * sc);
+
+      entities.forEach(ent => {
+        const layerLow = (ent.layer || '').toLowerCase();
+        ctx.strokeStyle = layerLow.includes('col') || layerLow.includes('cot')
+          ? '#f87171'
+          : layerLow.includes('grid') || layerLow.includes('truc')
+            ? '#38bdf8'
+            : '#34d399';
+        ctx.lineWidth = layerLow.includes('col') || layerLow.includes('cot') ? 2.2 : 1.5;
+
+        if (ent.type === 'LINE' && Number.isFinite(ent.x1) && Number.isFinite(ent.x2)) {
+          ctx.beginPath();
+          ctx.moveTo(toX(ent.x1), toY(ent.y1));
+          ctx.lineTo(toX(ent.x2), toY(ent.y2));
+          ctx.stroke();
+        } else if (ent.type === 'LWPOLYLINE' && ent.points && ent.points.length >= 2) {
+          ctx.beginPath();
+          ctx.moveTo(toX(ent.points[0].x), toY(ent.points[0].y));
+          for (let i = 1; i < ent.points.length; i++) {
+            ctx.lineTo(toX(ent.points[i].x), toY(ent.points[i].y));
+          }
+          if (ent.closed) ctx.closePath();
+          ctx.stroke();
+        } else if (ent.type === 'CIRCLE' && Number.isFinite(ent.cx)) {
+          ctx.beginPath();
+          ctx.arc(toX(ent.cx), toY(ent.cy), Math.max(2, (ent.r || 0) * sc), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      });
+    }
+  }
+  if (titleEl) titleEl.textContent = fileName;
+  if (badgeEl) badgeEl.textContent = `CAD DXF • ${isMm ? 'mm' : 'm'}`;
+
+  lastCadBimExtracted = {
+    source: fileName,
+    area: estAreaM2,
+    floors: null
+  };
+
+  const box = document.getElementById('cadbim-result-box');
+  if (box) {
+    box.innerHTML = `
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+        <span class="font-bold text-sm text-emerald-700">Đã đọc thành công tệp AutoCAD (.DXF)</span>
+        <span class="font-mono-tech text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">${entities.length} đối tượng</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2.5 pt-1">
+        <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+          <div class="text-[11px] text-slate-500">Kích thước bao mặt bằng</div>
+          <div class="font-mono-tech text-sm font-extrabold text-slate-900">${widthM} m × ${lengthM} m</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+          <div class="text-[11px] text-slate-500">Diện tích sàn ước tính</div>
+          <div class="font-mono-tech text-sm font-extrabold text-[#8b1e2b]">${estAreaM2} m²/sàn</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+          <div class="text-[11px] text-slate-500">Tổng chiều dài nét tường/dầm</div>
+          <div class="font-mono-tech text-sm font-bold text-slate-800">${totalLenM} md</div>
+        </div>
+        <div class="p-2.5 rounded-xl bg-white border border-slate-200">
+          <div class="text-[11px] text-slate-500">Số lớp Layer &amp; Cấu kiện</div>
+          <div class="font-mono-tech text-sm font-bold text-slate-800">${layers.size} layers • ${countLines + countPolys} nét</div>
+        </div>
+      </div>
+      <div class="text-[11px] text-slate-600 pt-1">
+        <strong>Chi tiết đối tượng DXF:</strong> LINE (${countLines}), LWPOLYLINE (${countPolys}), CIRCLE (${countCircles}), BLOCK/INSERT (${countInserts}), TEXT (${texts.length}).
+        ${texts.length ? `<br><strong>Ghi chú đọc được trong bản vẽ:</strong> ${texts.slice(0, 6).join(' • ')}` : ''}
+      </div>
+    `;
+  }
+
+  const applyBar = document.getElementById('cadbim-apply-bar');
+  const applySum = document.getElementById('cadbim-apply-summary');
+  if (applyBar && applySum) {
+    applySum.textContent = `Sẵn sàng đẩy Diện tích sàn = ${estAreaM2} m² từ bản vẽ "${fileName}" sang Mục 1!`;
+    applyBar.classList.remove('hidden');
+  }
+}
+
+function parseAndRenderIFC(ifcText, fileName) {
+  const schemaMatch = ifcText.match(/FILE_SCHEMA\s*\(\s*\(\s*'([^']+)'/i);
+  const schema = schemaMatch ? schemaMatch[1] : 'IFC2X3 / IFC4';
+  const projMatch = ifcText.match(/IFCPROJECT\s*\([^,]*,[^,]*,'([^']*)'/i);
+  const projectName = projMatch && projMatch[1] ? projMatch[1] : fileName;
+
+  const countEntity = (regex) => (ifcText.match(regex) || []).length;
+  const storeys = countEntity(/=\s*IFCBUILDINGSTOREY\s*\(/gi);
+  const walls = countEntity(/=\s*IFCWALL(?:STANDARDCASE)?\s*\(/gi);
+  const columns = countEntity(/=\s*IFCCOLUMN\s*\(/gi);
+  const beams = countEntity(/=\s*IFCBEAM\s*\(/gi);
+  const slabs = countEntity(/=\s*IFCSLAB\s*\(/gi);
+  const footings = countEntity(/=\s*IFCFOOTING\s*\(/gi);
+  const doors = countEntity(/=\s*IFCDOOR\s*\(/gi);
+  const windows = countEntity(/=\s*IFCWINDOW\s*\(/gi);
+  const stairs = countEntity(/=\s*IFCSTAIR(?:FLIGHT)?\s*\(/gi);
+
+  // Ước tính diện tích sàn từ số lượng cấu kiện hoặc đọc IFCQUANTITYAREA nếu có
+  const areaMatches = [...ifcText.matchAll(/IFCQUANTITYAREA\s*\([^,]*,[^,]*,[^,]*,\s*([0-9.]+)/gi)].map(m => parseFloat(m[1])).filter(n => n > 10 && n < 5000);
+  const estArea = areaMatches.length
+    ? Math.round(areaMatches.reduce((a, b) => a + b, 0) / Math.max(1, storeys || 1))
+    : Math.max(60, Math.round((columns || 8) * 12));
+  const estFloors = Math.max(1, storeys || 3);
+
+  const wrap = document.getElementById('cadbim-preview-wrap');
+  const canvas = document.getElementById('cadbim-canvas');
+  const imgPrev = document.getElementById('cadbim-img-preview');
+  const titleEl = document.getElementById('cadbim-preview-title');
+  const badgeEl = document.getElementById('cadbim-file-badge');
+  if (wrap) wrap.classList.remove('hidden');
+  if (imgPrev) imgPrev.classList.add('hidden');
+  if (canvas) {
+    canvas.classList.remove('hidden');
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Vẽ sơ đồ phân tầng BIM 3D isometric minh họa trực quan số tầng đọc từ IFC
+    const floorsDraw = Math.min(8, estFloors);
+    const baseY = canvas.height - 46;
+    const stepY = Math.min(34, (canvas.height - 90) / Math.max(1, floorsDraw));
+    for (let f = 0; f < floorsDraw; f++) {
+      const y = baseY - f * stepY;
+      ctx.fillStyle = f === 0 ? 'rgba(139, 30, 43, 0.55)' : 'rgba(56, 189, 248, 0.25)';
+      ctx.strokeStyle = f === 0 ? '#fda4af' : '#38bdf8';
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(280, y - 24);
+      ctx.lineTo(430, y);
+      ctx.lineTo(280, y + 24);
+      ctx.lineTo(130, y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.fillText(`Tầng ${f + 1}`, 445, y + 4);
+    }
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText(`BIM Schema: ${schema} • ${estFloors} tầng • ${columns} Cột • ${beams} Dầm • ${walls} Tường`, 20, 24);
+  }
+  if (titleEl) titleEl.textContent = projectName;
+  if (badgeEl) badgeEl.textContent = `BIM ${schema}`;
+
+  lastCadBimExtracted = {
+    source: fileName,
+    area: estArea,
+    floors: estFloors
+  };
+
+  const box = document.getElementById('cadbim-result-box');
+  if (box) {
+    box.innerHTML = `
+      <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+        <span class="font-bold text-sm text-emerald-700">Đã đọc thành công mô hình BIM (.IFC)</span>
+        <span class="font-mono-tech text-[11px] font-bold px-2 py-0.5 rounded bg-sky-100 text-sky-800">${schema}</span>
+      </div>
+      <div class="text-xs text-slate-700 pt-1"><strong>Tên dự án BIM:</strong> ${projectName}</div>
+      <div class="grid grid-cols-3 gap-2 pt-1 font-mono-tech">
+        <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Số tầng</div><div class="text-sm font-extrabold text-[#8b1e2b]">${estFloors}</div></div>
+        <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Cột (Column)</div><div class="text-sm font-extrabold text-slate-900">${columns}</div></div>
+        <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Dầm (Beam)</div><div class="text-sm font-extrabold text-slate-900">${beams}</div></div>
+        <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Tường (Wall)</div><div class="text-sm font-extrabold text-slate-900">${walls}</div></div>
+        <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Sàn (Slab)</div><div class="text-sm font-extrabold text-slate-900">${slabs}</div></div>
+        <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Móng (Footing)</div><div class="text-sm font-extrabold text-slate-900">${footings}</div></div>
+      </div>
+      <div class="text-[11px] text-slate-600 pt-1">
+        <strong>Hoàn thiện kiến trúc:</strong> ${doors} Cửa đi (<code>IFCDOOR</code>) • ${windows} Cửa sổ (<code>IFCWINDOW</code>) • ${stairs} Cầu thang (<code>IFCSTAIR</code>).
+      </div>
+    `;
+  }
+
+  const applyBar = document.getElementById('cadbim-apply-bar');
+  const applySum = document.getElementById('cadbim-apply-summary');
+  if (applyBar && applySum) {
+    applySum.textContent = `Sẵn sàng đẩy Quy mô ${estFloors} tầng × ${estArea} m²/sàn từ mô hình BIM "${fileName}" sang Mục 1!`;
+    applyBar.classList.remove('hidden');
+  }
+}
+
+function inspectBinaryCadHeader(bytes, fileName, ext, fileSize) {
+  let headerStr = '';
+  for (let i = 0; i < Math.min(bytes.length, 12); i++) {
+    headerStr += String.fromCharCode(bytes[i]);
+  }
+  const dwgVersions = {
+    AC1032: 'AutoCAD 2018 – 2026 DWG',
+    AC1027: 'AutoCAD 2013 – 2017 DWG',
+    AC1024: 'AutoCAD 2010 – 2012 DWG',
+    AC1021: 'AutoCAD 2007 – 2009 DWG'
+  };
+  const code6 = headerStr.slice(0, 6);
+  const detected = ext === 'dwg'
+    ? (dwgVersions[code6] || `AutoCAD DWG (${code6 || 'Binary'})`)
+    : 'Autodesk Revit Project (.RVT Binary)';
+
+  const box = document.getElementById('cadbim-result-box');
+  if (box) {
+    box.innerHTML = `
+      <div class="p-3 rounded-xl fix-guide-box space-y-1.5">
+        <div class="font-bold text-sm">Đã nhận diện tệp: ${fileName} (${(fileSize / 1024).toFixed(1)} KB)</div>
+        <div><strong>Định dạng phát hiện:</strong> ${detected}</div>
+        <div>Vì <strong>.${ext}</strong> là định dạng nhị phân độc quyền đóng của Autodesk (trình duyệt web không giải mã trực tiếp mã nguồn đóng), hãy thực hiện 1 thao tác xuất chuẩn mở (mất 5 giây):</div>
+        <div>• ${ext === 'dwg' ? 'Trong <strong>AutoCAD</strong>: chọn <strong>Save As → AutoCAD DXF (*.dxf)</strong> rồi tải lại vào đây để vẽ Canvas 2D &amp; bóc tách tự động.' : 'Trong <strong>Revit</strong>: chọn <strong>File → Export → IFC (*.ifc)</strong> rồi tải lại vào đây để đếm toàn bộ Cột, Dầm, Tường, Sàn, Móng 3D.'}</div>
+      </div>
+    `;
+  }
+  document.getElementById('cadbim-apply-bar')?.classList.add('hidden');
+}
+
+async function analyzeBlueprintImageWithAI(dataUrl, mimeType, fileName) {
+  const wrap = document.getElementById('cadbim-preview-wrap');
+  const canvas = document.getElementById('cadbim-canvas');
+  const imgPrev = document.getElementById('cadbim-img-preview');
+  const titleEl = document.getElementById('cadbim-preview-title');
+  const badgeEl = document.getElementById('cadbim-file-badge');
+  if (wrap) wrap.classList.remove('hidden');
+  if (canvas) canvas.classList.add('hidden');
+  if (imgPrev) {
+    imgPrev.src = dataUrl;
+    imgPrev.classList.remove('hidden');
+  }
+  if (titleEl) titleEl.textContent = fileName;
+  if (badgeEl) badgeEl.textContent = 'AI Vision Blueprint';
+
+  const box = document.getElementById('cadbim-result-box');
+  if (box) {
+    box.innerHTML = `<div class="flex items-center gap-2 text-emerald-700 font-semibold"><span class="animate-spin inline-block w-4 h-4 shrink-0 border-2 border-emerald-600 border-t-transparent rounded-full"></span><span>Gemini Vision AI đang đọc kích thước lưới trục &amp; bóc tách mặt bằng...</span></div>`;
+  }
+
+  try {
+    const prompt = `Bạn là Kỹ sư QS & Kết cấu Việt Nam. Hãy đọc bản vẽ mặt bằng kiến trúc/kết cấu trong ảnh này và trả về DUY NHẤT JSON chuẩn:
+{
+  "widthM": 5.0,
+  "lengthM": 20.0,
+  "areaM2": 100,
+  "floorsEstimate": 3,
+  "columnsEstimate": 12,
+  "summary": "Tóm tắt ngắn gọn kích thước lưới trục, công năng các phòng và lưu ý kết cấu đọc được từ bản vẽ (không dùng dấu * hay LaTeX)"
+}`;
+    const raw = await callGeminiAPI(prompt, dataUrl, mimeType, true);
+    const parsed = parseGeminiJsonSafe(raw);
+    if (parsed && typeof parsed === 'object') {
+      const area = Math.max(30, Math.round(parsed.areaM2 || ((parsed.widthM || 5) * (parsed.lengthM || 20))));
+      const floors = Math.max(1, Math.round(parsed.floorsEstimate || 3));
+      lastCadBimExtracted = { source: fileName, area, floors };
+      if (box) {
+        box.innerHTML = `
+          <div class="font-bold text-sm text-emerald-700 border-b border-slate-200 pb-1.5">Gemini Vision đã đọc xong Bản vẽ Mặt bằng</div>
+          <div class="grid grid-cols-3 gap-2 pt-1 font-mono-tech">
+            <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Kích thước</div><div class="text-xs font-bold">${parsed.widthM || '--'}×${parsed.lengthM || '--'}m</div></div>
+            <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Diện tích sàn</div><div class="text-xs font-extrabold text-[#8b1e2b]">${area} m²</div></div>
+            <div class="p-2 rounded-lg bg-white border border-slate-200 text-center"><div class="text-[10px] text-slate-500">Số cột dự kiến</div><div class="text-xs font-bold">${parsed.columnsEstimate || '--'}</div></div>
+          </div>
+          <div class="pt-1 text-slate-700">${formatAIResponseHTML(parsed.summary || 'Đã hoàn tất phân tích bản vẽ.')}</div>
+        `;
+      }
+      const applyBar = document.getElementById('cadbim-apply-bar');
+      const applySum = document.getElementById('cadbim-apply-summary');
+      if (applyBar && applySum) {
+        applySum.textContent = `Sẵn sàng đẩy Diện tích ${area} m²/sàn × ${floors} tầng sang Dự toán Mục 1!`;
+        applyBar.classList.remove('hidden');
+      }
+    } else if (box) {
+      box.innerHTML = formatAIResponseHTML(raw);
+    }
+  } catch (err) {
+    if (box) {
+      box.innerHTML = `<div class="text-rose-700 font-semibold">Không thể phân tích ảnh mặt bằng bằng AI: ${err.message}. Hãy kiểm tra kết nối Gemini API hoặc tải tệp .dxf / .ifc để đọc ngoại tuyến 100%.</div>`;
+    }
+  }
+}
+
+function applyCadBimToEstimator() {
+  if (!lastCadBimExtracted) return;
+  const areaInput = document.getElementById('est-area');
+  const floorsInput = document.getElementById('est-floors');
+  if (areaInput && lastCadBimExtracted.area) areaInput.value = lastCadBimExtracted.area;
+  if (floorsInput && lastCadBimExtracted.floors) floorsInput.value = lastCadBimExtracted.floors;
+  calculateEstimation(true);
+  switchEstimatorSubTab('overview');
+}
+
+function loadSampleDXF() {
+  // Mẫu file DXF chuẩn AutoCAD thật (nhà phố 5m x 20m = 5000mm x 20000mm có tường bao, vách ngăn & lưới cột)
+  const sampleDxf = [
+    '0', 'SECTION', '2', 'ENTITIES',
+    '0', 'LWPOLYLINE', '8', 'WALL', '70', '1',
+    '10', '0', '20', '0', '10', '5000', '20', '0', '10', '5000', '20', '20000', '10', '0', '20', '20000',
+    '0', 'LINE', '8', 'WALL', '10', '0', '20', '6000', '11', '5000', '21', '6000',
+    '0', 'LINE', '8', 'WALL', '10', '0', '20', '12000', '11', '5000', '21', '12000',
+    '0', 'LINE', '8', 'WALL', '10', '0', '20', '16500', '11', '5000', '21', '16500',
+    '0', 'LINE', '8', 'GRID', '10', '-800', '20', '0', '11', '5800', '21', '0',
+    '0', 'LINE', '8', 'GRID', '10', '-800', '20', '20000', '11', '5800', '21', '20000',
+    '0', 'CIRCLE', '8', 'COLUMN', '10', '0', '20', '0', '40', '250',
+    '0', 'CIRCLE', '8', 'COLUMN', '10', '5000', '20', '0', '40', '250',
+    '0', 'CIRCLE', '8', 'COLUMN', '10', '0', '20', '6000', '40', '250',
+    '0', 'CIRCLE', '8', 'COLUMN', '10', '5000', '20', '6000', '40', '250',
+    '0', 'CIRCLE', '8', 'COLUMN', '10', '0', '20', '12000', '40', '250',
+    '0', 'CIRCLE', '8', 'COLUMN', '10', '5000', '20', '12000', '40', '250',
+    '0', 'CIRCLE', '8', 'COLUMN', '10', '0', '20', '20000', '40', '250',
+    '0', 'CIRCLE', '8', 'COLUMN', '10', '5000', '20', '20000', '40', '250',
+    '0', 'TEXT', '8', 'TEXT', '1', 'MAT BANG NHA PHO 5x20m - KHOA XAY DUNG DTU',
+    '0', 'TEXT', '8', 'TEXT', '1', 'PHONG KHACH 30m2',
+    '0', 'TEXT', '8', 'TEXT', '1', 'BEP + AN 30m2',
+    '0', 'ENDSEC', '0', 'EOF'
+  ].join('\n');
+  parseAndRenderDXF(sampleDxf, 'Mau_Nha_Pho_5x20m_DTU.dxf');
+}
+
+function loadSampleIFC() {
+  // Mẫu file IFC4 STEP chuẩn BIM thật (Nhà phố 4 tầng, 12 cột, 28 dầm, 24 tường, 4 sàn, 12 móng)
+  const lines = [
+    'ISO-10303-21;',
+    'HEADER;',
+    "FILE_SCHEMA(('IFC4'));",
+    'ENDSEC;',
+    'DATA;',
+    "#1=IFCPROJECT('0x1',#2,'Nha Pho 4 Tang BIM - Khoa Xay Dung DTU',$,$,$,$,$,$);"
+  ];
+  let id = 10;
+  for (let i = 1; i <= 4; i++) lines.push(`#${id++}=IFCBUILDINGSTOREY('s${i}',#2,'Tang ${i}',$,$,$,$,$,.ELEMENT.,${(i - 1) * 3.6});`);
+  for (let i = 1; i <= 12; i++) lines.push(`#${id++}=IFCCOLUMN('c${i}',#2,'Cot BTCT 250x250',$,$,$,$,$);`);
+  for (let i = 1; i <= 28; i++) lines.push(`#${id++}=IFCBEAM('b${i}',#2,'Dam BTCT 220x450',$,$,$,$,$);`);
+  for (let i = 1; i <= 24; i++) lines.push(`#${id++}=IFCWALLSTANDARDCASE('w${i}',#2,'Tuong gach nhe AAC 150',$,$,$,$,$);`);
+  for (let i = 1; i <= 4; i++) lines.push(`#${id++}=IFCSLAB('sl${i}',#2,'San BTCT day 120mm',$,$,$,$,$,.FLOOR.);`);
+  for (let i = 1; i <= 12; i++) lines.push(`#${id++}=IFCFOOTING('f${i}',#2,'Mong coc BTCT',$,$,$,$,$,.PAD_FOOTING.);`);
+  for (let i = 1; i <= 10; i++) lines.push(`#${id++}=IFCDOOR('d${i}',#2,'Cua di',$,$,$,$,$);`);
+  for (let i = 1; i <= 14; i++) lines.push(`#${id++}=IFCWINDOW('wn${i}',#2,'Cua so kinh Low-E',$,$,$,$,$);`);
+  for (let i = 1; i <= 3; i++) lines.push(`#${id++}=IFCSTAIR('st${i}',#2,'Cau thang bo',$,$,$,$,$);`);
+  lines.push(`#${id++}=IFCQUANTITYAREA('NetFloorArea',$,$,440.0);`);
+  lines.push('ENDSEC;', 'END-ISO-10303-21;');
+  parseAndRenderIFC(lines.join('\n'), 'Mau_Mo_Hinh_BIM_4_Tang_DTU.ifc');
+}
+
+// ============================================================================
 // INITIALIZE ON DOM READY
 // ============================================================================
 

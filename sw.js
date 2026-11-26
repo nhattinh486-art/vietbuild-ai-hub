@@ -1,4 +1,4 @@
-const MAIN_CACHE_NAME = 'dtu-xaydung-main-pwa-v5';
+const MAIN_CACHE_NAME = 'dtu-xaydung-main-pwa-v6';
 const MAIN_ASSETS = [
   '/',
   '/index.html',

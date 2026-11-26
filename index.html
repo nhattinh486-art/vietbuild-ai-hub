@@ -771,7 +771,7 @@
             </button>
           </div>
 
-          <!-- THANH CHUYỂN 2 TRANG CON TRONG MỤC 1 -->
+          <!-- THANH CHUYỂN 3 TRANG CON TRONG MỤC 1 -->
           <div class="flex flex-wrap gap-2 p-1.5 rounded-xl bg-slate-900 border border-slate-800">
             <button type="button" onclick="switchEstimatorSubTab('overview')" data-est-subtab="overview" class="est-subtab-btn tcvn-subtab-btn tcvn-subtab-active px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5">
               <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
@@ -780,6 +780,10 @@
             <button type="button" onclick="switchEstimatorSubTab('boq')" data-est-subtab="boq" class="est-subtab-btn tcvn-subtab-btn px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5">
               <i data-lucide="table-2" class="w-3.5 h-3.5"></i>
               <span>2. Bảng Bóc tách Khối lượng (BOQ – 12 Hạng mục)</span>
+            </button>
+            <button type="button" onclick="switchEstimatorSubTab('cadbim')" data-est-subtab="cadbim" class="est-subtab-btn tcvn-subtab-btn px-3.5 py-2 rounded-lg text-xs font-semibold transition inline-flex items-center gap-1.5">
+              <i data-lucide="file-code-2" class="w-3.5 h-3.5"></i>
+              <span>3. Đọc Bản vẽ CAD / BIM (.dxf, .ifc, Ảnh)</span>
             </button>
           </div>
 
@@ -989,6 +993,66 @@
                   </thead>
                   <tbody id="boq-detail-body" class="divide-y divide-slate-800"></tbody>
                 </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- TRANG CON 1.3: TRÌNH ĐỌC & BÓC TÁCH BẢN VẼ CAD / BIM (.DXF, .IFC, ẢNH MẶT BẰNG) -->
+          <div id="est-sub-cadbim" class="est-sub-panel hidden space-y-5">
+            <div class="ui-card p-5 space-y-4">
+              <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-3.5">
+                <div>
+                  <h3 class="font-bold text-base text-slate-900">Trình đọc &amp; Trích xuất Bản vẽ Kỹ thuật CAD / BIM (.dxf, .ifc, Ảnh mặt bằng)</h3>
+                  <p class="text-xs text-slate-500 mt-0.5">Đọc trực tiếp cấu trúc hình học 2D từ <strong>AutoCAD (.dxf)</strong>, thống kê cấu kiện 3D từ <strong>Revit / ArchiCAD / Tekla (.ifc)</strong> hoặc dùng <strong>Gemini Vision AI</strong> đọc mặt bằng ảnh (.png/.jpg) để tự đổ sang Dự toán BOQ.</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" onclick="loadSampleDXF()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-semibold transition">
+                    Thử mẫu CAD (.dxf)
+                  </button>
+                  <button type="button" onclick="loadSampleIFC()" class="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 text-xs font-semibold transition">
+                    Thử mẫu BIM (.ifc)
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <!-- Cột trái: Vùng tải tệp + Canvas xem trước CAD 2D / Ảnh -->
+                <div class="lg:col-span-6 space-y-3">
+                  <label class="block p-5 rounded-2xl border-2 border-dashed border-slate-300 hover:border-[#8b1e2b] bg-slate-50 text-center cursor-pointer transition">
+                    <input id="cadbim-file-input" type="file" accept=".dxf,.ifc,.dwg,.rvt,image/*" onchange="handleCadBimFileUpload(event)" class="hidden" />
+                    <div class="inline-flex items-center justify-center w-11 h-11 rounded-xl bg-white border border-slate-200 shadow-sm text-[#8b1e2b] mb-2">
+                      <i data-lucide="upload-cloud" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-sm font-bold text-slate-800">Tải tệp Bản vẽ CAD / BIM hoặc Ảnh Mặt bằng</div>
+                    <div class="text-xs text-slate-500 mt-1">Hỗ trợ đọc trực tiếp: <strong>.dxf</strong> (AutoCAD), <strong>.ifc</strong> (BIM Open Standard), <strong>.png / .jpg</strong> (AI Vision) • Nhận diện phiên bản <strong>.dwg / .rvt</strong></div>
+                  </label>
+
+                  <div id="cadbim-preview-wrap" class="hidden rounded-2xl border border-slate-200 bg-white p-3 space-y-2">
+                    <div class="flex items-center justify-between text-xs">
+                      <span id="cadbim-preview-title" class="font-bold text-slate-800">Xem trước Bản vẽ</span>
+                      <span id="cadbim-file-badge" class="font-mono-tech px-2 py-0.5 rounded bg-slate-100 text-slate-700 text-[11px] font-bold">DXF</span>
+                    </div>
+                    <canvas id="cadbim-canvas" width="560" height="320" class="hidden w-full h-64 rounded-xl bg-[#0f172a] border border-slate-800"></canvas>
+                    <img id="cadbim-img-preview" class="hidden w-full max-h-64 object-contain rounded-xl border border-slate-200 bg-slate-50" alt="Ảnh bản vẽ mặt bằng" />
+                  </div>
+                </div>
+
+                <!-- Cột phải: Kết quả trích xuất cấu kiện & nút đẩy sang Mục 1 -->
+                <div class="lg:col-span-6 space-y-3">
+                  <div id="cadbim-result-box" class="p-4 rounded-2xl tech-surface border text-xs text-slate-600 leading-relaxed space-y-2">
+                    <div class="font-bold text-slate-800 text-sm">Chưa có tệp bản vẽ nào được tải lên</div>
+                    <div>• Chọn file <strong>.dxf</strong> xuất từ AutoCAD để hệ thống đọc toàn bộ nét vẽ (<code>LINE</code>, <code>LWPOLYLINE</code>, <code>CIRCLE</code>, <code>INSERT</code>, <code>TEXT</code>), đo kích thước bao mặt bằng và vẽ trực tiếp lên khung Canvas.</div>
+                    <div>• Chọn file <strong>.ifc</strong> xuất từ Revit / ArchiCAD / Tekla để đếm chính xác số tầng (<code>IFCBUILDINGSTOREY</code>), số lượng Cột, Dầm, Tường, Sàn, Móng, Cửa đi, Cửa sổ và Cầu thang.</div>
+                    <div>• Chọn ảnh mặt bằng <strong>.png / .jpg</strong> để <strong>Gemini Vision AI</strong> đọc kích thước lưới trục, diện tích sàn và tự đề xuất thông số dự toán.</div>
+                  </div>
+
+                  <div id="cadbim-apply-bar" class="hidden p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-wrap items-center justify-between gap-2">
+                    <div id="cadbim-apply-summary" class="text-xs font-semibold text-emerald-900"></div>
+                    <button type="button" onclick="applyCadBimToEstimator()" class="px-4 py-2 rounded-xl btn-primary-dtu text-xs font-bold shadow-sm transition">
+                      Áp dụng vào Dự toán Mục 1 →
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
